@@ -1,0 +1,30 @@
+$Id$
+README for TinyDDS
+Author/Contact:
+* Pruet Boonma <pruetboonma@gmail.com>
+
+Description:
+
+TinyDDS is pluggable pub/sub middleware for WSN. It is designed to be extensible and portable. Currently, it supports TinyOS but a version for SunSpot is planned. Please see [1] for more detail.
+
+OERP plugins:
+ * DHT
+ * BiSNET [2]
+ * Flood
+
+L3 plugins:
+ * AODV based on TinyAODV
+ * OneHop
+
+QoS plugins:
+
+
+Tools:
+nesc.py is a plugin for OmniIDL for generating TinyDDS skeleton file from DDS' idl
+
+Known bugs/limitations:
+
+
+Reference:
+[1] P. Boonma and J. Suzuki, "Middleware Support for Pluggable Non-functional Properties in Wireless Sensor Networks," In Proc. of IEEE Workshop on Methodologies for Non-functional Properties in Services Computing, Honolulu, HI, July 2008. 
+[2] P. Boonma and J. Suzuki, "Exploring Self-star Properties in Cognitive Sensor Networking," In Proc. of the 11th IEEE/SCS International Symposium on Performance Evaluation of Computer and Telecommunication Systems (SPECTS), Edinburgh, UK, June 2008. 
