@@ -1,0 +1,52 @@
+enum {
+	REJECTED_BY_INSTANCE_LIMIT,
+	REJECTED_BY_TOPIC_LIMIT
+};
+#define SampleRejectedStatusKind uint8_t
+
+enum {
+	VOLATILE_DURABILITY_QOS,
+	TRANSIENT_LOCAL_DURABILITY_QOS,
+	TRANSIENT_DURABILITY_QOS,
+	PERSISTENT_DURABILITY_QOS
+};
+#define DurabilityQosPolicyKind uint8_t
+
+enum {
+	INSTANCE_PRESENTATION_QOS,
+	TOPIC_PRESENTATION_QOS,
+	GROUP_PRESENTATION_QOS
+};
+#define PresentationQosPolicyAccessScopeKind uint8_t
+
+enum {
+	SHARED_OWNERSHIP_QOS,
+	EXCLUSIVE_OWNERSHIP_QOS
+};
+#define OwnershipQosPolicyKind uint8_t
+
+enum {
+	AUTOMATIC_LIVELINESS_QOS,
+	MANUAL_BY_PARTICIPANT_LIVELINESS_QOS,
+	MANUAL_BY_TOPIC_LIVELINESS_QOS
+};
+#define LivelinessQosPolicyKind uint8_t
+
+enum {
+	BEST_EFFORT_RELIABILITY_QOS,
+	RELIABLE_RELIABILITY_QOS
+};
+#define ReliabilityQosPolicyKind uint8_t
+
+enum {
+	BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS,
+	BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS
+};
+#define DestinationOrderQosPolicyKind uint8_t
+
+enum {
+	KEEP_LAST_HISTORY_QOS,
+	KEEP_ALL_HISTORY_QOS
+};
+#define HistoryQosPolicyKind uint8_t
+
