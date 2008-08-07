@@ -1,4 +1,4 @@
-//$Id: BisnetM.nc,v 1.4 2008-07-29 19:39:40 pruet Exp $
+//$Id: BisnetM.nc,v 1.6 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 

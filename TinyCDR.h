@@ -1,4 +1,4 @@
-//$Id: Topic.nc,v 1.3 2008-08-07 21:27:53 pruet Exp $
+//$Id: TinyCDR.h,v 1.2 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -28,18 +28,16 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
 */
-			
-//This file is generated from IDL/Configuration. Do not edit manually
-//Ancestors List:
-//	Entity
-//	TopicDescription
-interface Topic {
-	command  InconsistentTopicStatus get_inconsistent_topic_status ();
-	command Topic_t create (uint8_t* topic_name);
-	//Inherited from Entity
-	command  ReturnCode_t enable ();
-	//Inherited from Entity
-	command  StatusCondition_t get_statuscondition ();
-	//Inherited from Entity
-	command  StatusKindMask get_status_changes ();
-}
+
+typedef uint8_t		cdr_char ;
+typedef uint8_t		cdr_octet;
+typedef int16_t		cdr_short;
+typedef uint16_t	cdr_ushort;
+typedef int32_t		cdr_long;
+typedef uint32_t	cdr_ulong;
+typedef int64_t		cdr_longlong;
+typedef uint64_t	cdr_ulonglong;
+typedef float		cdr_float;
+typedef double		cdr_double;
+typedef double		cdr_longdouble;
+typedef uint8_t		cdr_boolean;

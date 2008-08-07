@@ -1,4 +1,4 @@
-//$Id: ApplicationM.nc,v 1.3 2008-07-29 19:39:40 pruet Exp $
+//$Id: ApplicationM.nc,v 1.5 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -57,7 +57,7 @@ implementation {
 	DataWriter_t data_writer = NIL;
 	SubscriberListener_t listener = NIL;
 	int id = 0;
-	int mod = 4;
+	int mod = 3;
 	
 	command result_t StdControl.init ()
 	{
@@ -103,18 +103,13 @@ implementation {
 	{
 		Data data;
 		uint32_t t;
-		//timeSync_t times;
 		dbg(DBG_USR1,"ApplicationM:Timer:fired \n");
 		if(data_writer != NIL) {
 			t = call Time.getLow32();
-			//call Time.getGlobalTime(&times);
-			//t = times.clock;
-			//FIXME: OERP should make another copy of data!!!
 			data.item = (Data_t) malloc(sizeof(uint8_t) * (1 + BISNET_HEADER_SIZE));
 			data.item[0] = 's'; // sensor reading
 			data.size = 1 + BISNET_HEADER_SIZE;
 			data.subject = SUBJECT_DATA;
-			//data.src = TOS_LOCAL_ADDRESS;
 			data.timestamp.sec = t/32768;
 			data.timestamp.nanosec = (t - data.timestamp.sec * 32768);
 			dbg(DBG_USR1,"ApplicationM:Timer:publish data %d\n", id);
@@ -134,11 +129,7 @@ implementation {
 	event ReturnCode_t SubscriberListener.data_available (Topic_t topic)
 	{
 		Data data;
-		//timeSync_t times;
-		//uint32_t t;
 		uint32_t t = call Time.getLow32();
-		//call Time.getGlobalTime(&times);
-		//t = times.clock;
 		dbg(DBG_USR1,"ApplicationM:subscriberlistener:data_available\n");
 		call Leds.redToggle();
 		if( call DataReader.read(topic, &data) == FAIL) {

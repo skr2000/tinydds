@@ -4,18 +4,20 @@
         <includes>
             <component name="LedsC" stdctrl="false" />
             <component name="TimerC" stdctrl="true" />
-            <component name="NeighborsM" stdctrl="true" />
+            <component name="NeighborList" stdctrl="true" />
             <!-- <component name="DDS_DataAggregationM" interface="DataAggregation" stdctrl="true" /> --> 
             <component name="LogicalTime" stdctrl="true" />
             <!-- <component name="FloodingM" interface="OERP"/>  -->
             <!-- <component name="BisnetM" interface="OERP"/>  -->
-            <component name="DHTM" interface="OERP"/>  
+            <!-- <component name="DHTM" interface="OERP"/>  -->
+            <component name="SpanningTreeM" interface="OERP"/>  
         </includes>
         
         <implementations>
             <!-- <implementation component="FloodingM" interface="OERP" /> -->
             <!-- <implementation component="BisnetM" interface="OERP" /> -->
-            <implementation component="DHTM" interface="OERP" /> 
+            <!-- <implementation component="DHTM" interface="OERP" />  -->
+            <implementation component="SpanningTreeM" interface="OERP" />  
         </implementations>
 
         <connections>
@@ -31,20 +33,23 @@
             <header name="BaseUART" />
             <header name="Apps_utils" />
             <header name="WSN" />
+            <header name="TinyCDR" />
             <component name="Main" stdctrl="true" /> 
             <component name="GenericComm" stdctrl="true" />
             <component name="ApplicationM" interface="Application" stdctrl="true" />
             <component name="OERP" interface="OERP" stdctrl="true" />
             <component name="L4ALM" interface="L4" stdctrl="true" />
-            <component name="PerTopicM" interface="EventQueue" condition="threading=per-topic" />
-            <component name="PerEventM" interface="EventQueue" condition="threading=per-event" />
-            <component name="LatencyBudgetQosPolicyM" interface="LatencyBudgetQosPolicy" />
-            <component name="ReliabilityQosPolicyM" interface="ReliabilityQosPolicy" />
-            <component name="QosPolicyM" interface="QosPolicy" />
+            <!-- <component name="PerTopicM" interface="EventQueue" condition="threading=per-topic" />
+            <component name="PerEventM" interface="EventQueue" condition="threading=per-event" /> -->
+            <!-- <component name="LatencyBudgetQosPolicyM" interface="LatencyBudgetQosPolicy" />
+            <component name="ReliabilityQosPolicyM" interface="ReliabilityQosPolicy" /> -->
+            <!-- <component name="QosPolicyM" interface="QosPolicy" /> -->
             <component name="L3" interface="L3" stdctrl="true" />
-            <component name="TinyAODVM" interface="L3" stdctrl="true" />
-            <component name="AODV" stdctrl="true"  makefile="../MakeHSN"/>
+            <component name="OneHopM" interface="L3" stdctrl="true" />
+            <!-- <component name="TinyAODVM" interface="L3" stdctrl="true" />
+            <component name="AODV" stdctrl="true"  makefile="../MakeHSN"/> -->
             <component name="LogicalTime" stdctrl="true" />
+			<component name="NeighborList" stdctrl="true" />
         </includes>
         <connections>
         <!-- Global -->
@@ -59,14 +64,14 @@
             <connection from="ApplicationM.Subscriber" to="SubscriberM" />
             <connection from="ApplicationM.SubscriberListener" to="SubscriberListenerM" />
             <connection from="ApplicationM.Topic" to="TopicM" />
-            <connection from="ApplicationM.ContentFilteredTopic" to="ContentFilteredTopic" />
-            <connection from="ApplicationM.QosPolicy" to="QosPolicyM" />
+            <!-- <connection from="ApplicationM.ContentFilteredTopic" to="ContentFilteredTopic" /> -->
+            <!-- <connection from="ApplicationM.QosPolicy" to="QosPolicyM" /> -->
         <!-- DDS Interfaces Layer -->
             <!-- DataAggregatorM -->
-            <connection from="DDS_DataAggregation.SubscriberListener" to="SubscriberListenerM" />
+            <!-- <connection from="DDS_DataAggregation.SubscriberListener" to="SubscriberListenerM" />
             <connection from="DDS_DataAggregation.Topic" to="TopicM" />
-            <connection from="DDS_DataAggregation.ContentFilteredTopic" to="ContentFilteredTopicM" />
-            <connection from="DDS_DataAggregation.QosPolicy" to="QosPolicyM" />
+            <connection from="DDS_DataAggregation.ContentFilteredTopic" to="ContentFilteredTopicM" /> 
+            <connection from="DDS_DataAggregation.QosPolicy" to="QosPolicyM" /> -->
             <!-- DataWriterM -->
             <connection from="DataWriterM.Publisher" to="PublisherM" />
             <!-- <connection from="DataWriterM.Time" to="LogicalTime" /> -->
@@ -78,8 +83,8 @@
             <!-- DataWriterM -->
             <connection from="PublisherM.DataWriter" to="DataWriterM" />
             <!-- QosPolicyM -->
-            <connection from="QosPolicyM.LatencyBudgetQosPolicy" to="LatencyBudgetQosPolicyM" />
-            <connection from="QosPolicyM.ReliabilityQosPolicy" to="ReliabilityQosPolicyM" />
+            <!-- <connection from="QosPolicyM.LatencyBudgetQosPolicy" to="LatencyBudgetQosPolicyM" /> 
+            <connection from="QosPolicyM.ReliabilityQosPolicy" to="ReliabilityQosPolicyM" /> -->
             <!-- SubscriberListernerM -->
             <connection from="SubscriberListenerM.DomainParticipant" to="DomainParticipant" />
         <!-- DDS Interfaces Layer to OERP layer -->
@@ -91,6 +96,7 @@
             <connection from="DomainParticipantM.Topic" to="TopicM" />
         <!-- OERP layer to L4AL layer -->
             <!-- OERP -->
+            <connection from="OERP.Timer" to='TimerC.Timer[unique("Timer")];' />
             <connection from="OERP.L4" to="L4ALM" />
         <!-- L4AL layer -->
             <connection from="L4ALM.EventQueue" to="PerEventM" />
@@ -98,17 +104,21 @@
             <connection from="L4ALM.QosPolicy" to="QosPolicyM" />
             <connection from="L4ALM.L3" to="L3" />
         <!-- L3 layer -->  
-            <connection from="TinyAODVM.Send" to="AODV.Send[0]" />
+            <connection from="OneHopM.SendMsg" to="GenericComm.SendMsg[0]" />
+            <connection from="OneHopM.ReceiveMsg" to="GenericComm.ReceiveMsg[0]" />
+			<connection from="OneHopM.Neighbors" to="NeighborList.Neighbors" /> 
+            <!-- <connection from="TinyAODVM.Send" to="AODV.Send[0]" />
             <connection from="TinyAODVM.Receive" to="AODV.Receive[0]" />
             <connection from="TinyAODVM.Intercept" to="AODV.Intercept[0]" />
             <connection from="TinyAODVM.SendMHopMsg" to="AODV.SendMHopMsg[0]" />
             <connection from="TinyAODVM.SingleHopMsg" to="AODV.SingleHopMsg" />
             <connection from="TinyAODVM.MultiHopMsg" to="AODV.MultiHopMsg" />
             <connection from="TinyAODVM.AODVMsg" to="AODV.AODVMsg" />
-			<connection from="TinyAODVM.Neighbors" to="NeighborsM.Neighbors" />
+			<connection from="TinyAODVM.Neighbors" to="NeighborsM.Neighbors" /> -->
         </connections>
         <implementations>
-            <implementation component="TinyAODVM" interface="L3"/>
+            <!-- <implementation component="TinyAODVM" interface="L3"/> -->
+            <implementation component="OneHopM" interface="L3"/> 
         </implementations>
         <skip-list>
             <skip-interface name="Condition" />
