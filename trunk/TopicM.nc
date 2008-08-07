@@ -1,4 +1,4 @@
-//$Id: TopicM.nc,v 1.2 2008-07-28 06:32:55 pruet Exp $
+//$Id: TopicM.nc,v 1.4 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -40,29 +40,29 @@ module TopicM {
 	}
 }
 implementation {
-	char topic_list[MAX_MEMBER_SIZE][MAX_TOPIC_LENGTH];
+	char* topic_list[MAX_TOPIC_NUM];
 	ReturnCode_t enabled;
 	command result_t StdControl.init ()
 	{
 		int i;
-		debug("TopicM:init");
+		dbg(DBG_USR2, "TopicM:init:#topic=%d\n", MAX_TOPIC_NUM);
 		enabled = RETCODE_NOT_ENABLED;
-		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
-			topic_list[i][0] = 0;
+		for(i = 0; i != MAX_TOPIC_NUM; i++) {
+			topic_list[i] = 0;
 		}
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("TopicM:start");
+		dbg(DBG_USR2, "TopicM:start\n");
 		enabled = RETCODE_OK;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("TopicM:stop");
+		dbg(DBG_USR2, "TopicM:stop\n");
 		enabled = RETCODE_NOT_ENABLED;
 		return SUCCESS;
 	}
@@ -70,26 +70,39 @@ implementation {
 	command InconsistentTopicStatus Topic.get_inconsistent_topic_status ()
 	{
 		InconsistentTopicStatus s;
-		debug("TopicM:get_inconsistent_topic_status");
+		dbg(DBG_USR2, "TopicM:get_inconsistent_topic_status\n");
 		return s;
 	}
 
 	
-	command Topic_t Topic.create (char* topic_name)
+	command Topic_t Topic.create (uint8_t* topic_name)
 	{
 		int i;
-		debug("Topic:create");
-		for(i = 1; i != MAX_MEMBER_SIZE; i++) {
-			if(strcmp(topic_name, topic_list[i]) == 0) {
-				return i;
+		int l;
+		uint32_t h;
+		uint32_t g;
+	
+		//PJW hash here
+		l = strlen(topic_name);
+		h = 0;
+		for(i = 0; i != l; i++) {
+			h = (h << 4) + topic_name[i];
+			g = h & 0xf0000000;
+			if (g != 0) {
+				h = h ^ (g >> 24);
+				h = h ^ g;
 			}
 		}
-		for(i = 1; i != MAX_MEMBER_SIZE; i++) {
-			if(topic_list[i][0] == 0) {
-				strcpy(topic_list[i], topic_name);
-				return i;
-			}
+		h = h % MAX_TOPIC_NUM;
+		dbg(DBG_USR2, "TopicM:create:topic=%d\n", h);
+		if(topic_list[h] == 0) {
+			topic_list[h] = (uint8_t *)malloc(sizeof(uint8_t) * l);
+			strcpy(topic_list[h], topic_name);
+			return h;
+		} else if(strcmp(topic_name, topic_list[h]) == 0) {
+			return i;
 		}
+		dbg(DBG_USR2, "TopicM:create:crashed\n");
 		return NOT_AVAILABLE;
 	}
 	
@@ -97,20 +110,20 @@ implementation {
 	//Inherited from Entity
 	command ReturnCode_t Topic.enable ()
 	{
-		debug("TopicM:enable");
+		dbg(DBG_USR2, "TopicM:enable\n");
 		enabled = RETCODE_OK;
 		return enabled;
 	}
 	//Inherited from Entity
 	command StatusCondition_t Topic.get_statuscondition ()
 	{
-		debug("TopicM:get_statuscondition");
+		dbg(DBG_USR2, "TopicM:get_statuscondition\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 	//Inherited from Entity
 	command StatusKindMask Topic.get_status_changes ()
 	{
-		debug("TopicM:get_status_changes");
+		dbg(DBG_USR2, "TopicM:get_status_changes\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 }

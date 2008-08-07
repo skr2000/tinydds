@@ -1,4 +1,4 @@
-//$Id: L4ALM.nc,v 1.2 2008-07-28 06:32:55 pruet Exp $
+//$Id: L4ALM.nc,v 1.4 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 

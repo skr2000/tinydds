@@ -1,4 +1,4 @@
-//$Id: nesc.py,v 1.2 2008-06-25 16:15:28 pruet Exp $
+//$Id: DDS.nc,v 1.6 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -38,35 +38,31 @@ includes DDS_const;
 includes BaseUART;
 includes Apps_utils;
 includes WSN;
+includes TinyCDR;
 //Configuration block
 configuration DDS {
 }
 
 //Implementation block
 implementation {
-	components LedsC, TimerC, NeighborsM, LogicalTime, DHTM, Main, GenericComm, ApplicationM, L4ALM, PerEventM, LatencyBudgetQosPolicyM, ReliabilityQosPolicyM, QosPolicyM, TinyAODVM, AODV, TopicM, DomainParticipantM, DataReaderM, SubscriberListenerM, PublisherM, SubscriberM, TypeSupportM, EntityM, DataWriterM, ContentFilteredTopicM;
+	components LedsC, TimerC, NeighborList, LogicalTime, SpanningTreeM, Main, GenericComm, ApplicationM, L4ALM, OneHopM, PublisherM, DomainParticipantM, DataReaderM, SubscriberListenerM, SubscriberM, TypeSupportM, EntityM, TopicM, DataWriterM, ContentFilteredTopicM;
 
 	Main.StdControl -> TimerC;
-	Main.StdControl -> NeighborsM;
+	Main.StdControl -> NeighborList;
 	Main.StdControl -> LogicalTime;
-	Main.StdControl -> DHTM;
+	Main.StdControl -> SpanningTreeM;
 	Main.StdControl -> GenericComm;
 	Main.StdControl -> ApplicationM;
 	Main.StdControl -> L4ALM;
-	Main.StdControl -> PerEventM;
-	Main.StdControl -> LatencyBudgetQosPolicyM;
-	Main.StdControl -> ReliabilityQosPolicyM;
-	Main.StdControl -> QosPolicyM;
-	Main.StdControl -> TinyAODVM;
-	Main.StdControl -> AODV;
-	Main.StdControl -> TopicM;
+	Main.StdControl -> OneHopM;
+	Main.StdControl -> PublisherM;
 	Main.StdControl -> DomainParticipantM;
 	Main.StdControl -> DataReaderM;
 	Main.StdControl -> SubscriberListenerM;
-	Main.StdControl -> PublisherM;
 	Main.StdControl -> SubscriberM;
 	Main.StdControl -> TypeSupportM;
 	Main.StdControl -> EntityM;
+	Main.StdControl -> TopicM;
 	Main.StdControl -> DataWriterM;
 	Main.StdControl -> ContentFilteredTopicM;
 	ApplicationM.Leds -> LedsC;
@@ -79,27 +75,18 @@ implementation {
 	ApplicationM.Subscriber -> SubscriberM;
 	ApplicationM.SubscriberListener -> SubscriberListenerM;
 	ApplicationM.Topic -> TopicM;
-	ApplicationM.QosPolicy -> QosPolicyM;
 	DataWriterM.Publisher -> PublisherM;
 	SubscriberListenerM.DataReader -> DataReaderM;
 	SubscriberM.DataReader -> DataReaderM;
 	SubscriberM.SubscriberListener -> SubscriberListenerM;
 	PublisherM.DataWriter -> DataWriterM;
-	QosPolicyM.LatencyBudgetQosPolicy -> LatencyBudgetQosPolicyM;
-	QosPolicyM.ReliabilityQosPolicy -> ReliabilityQosPolicyM;
-	PublisherM.OERP -> DHTM;
-	SubscriberM.OERP -> DHTM;
+	PublisherM.OERP -> SpanningTreeM;
+	SubscriberM.OERP -> SpanningTreeM;
 	DomainParticipantM.Topic -> TopicM;
-	DHTM.L4 -> L4ALM;
-	L4ALM.EventQueue -> PerEventM;
-	L4ALM.QosPolicy -> QosPolicyM;
-	L4ALM.L3 -> TinyAODVM;
-	TinyAODVM.Send -> AODV.Send[0];
-	TinyAODVM.Receive -> AODV.Receive[0];
-	TinyAODVM.Intercept -> AODV.Intercept[0];
-	TinyAODVM.SendMHopMsg -> AODV.SendMHopMsg[0];
-	TinyAODVM.SingleHopMsg -> AODV.SingleHopMsg;
-	TinyAODVM.MultiHopMsg -> AODV.MultiHopMsg;
-	TinyAODVM.AODVMsg -> AODV.AODVMsg;
-	TinyAODVM.Neighbors -> NeighborsM.Neighbors;
+	SpanningTreeM.Timer -> TimerC.Timer[unique("Timer")];;
+	SpanningTreeM.L4 -> L4ALM;
+	L4ALM.L3 -> OneHopM;
+	OneHopM.SendMsg -> GenericComm.SendMsg[0];
+	OneHopM.ReceiveMsg -> GenericComm.ReceiveMsg[0];
+	OneHopM.Neighbors -> NeighborList.Neighbors;
 }

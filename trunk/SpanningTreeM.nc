@@ -1,4 +1,4 @@
-//$Id: SpanningTreeM.nc,v 1.1 2008-07-28 06:35:06 pruet Exp $
+//$Id: SpanningTreeM.nc,v 1.3 2008-08-07 21:27:53 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -30,7 +30,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 //This file is generated from IDL. please use it as the skelton file for your module
-module SpanningtreeM {
+module SpanningTreeM {
 	provides {
 		 interface StdControl;
 		 interface OERP;
@@ -42,63 +42,70 @@ module SpanningtreeM {
 }
 implementation {
 	
-	int my_weight;
+	int my_weight[MAX_TOPIC_NUM];
 	int my_parent;
-	uint8_t neighbors[MAX_NETWORK_SIZE];
+	uint8_t neighbors[MAX_MEMBER_SIZE];
 	Data weight_data;
+	Topic_t my_topic;
+	int weight_counter;
 
-	command ReturnCode_t OERP.send (Topic_t topic, Data data)
-	{
-		dbg(DBG_USR3, "SpanningtreeM:OERP:send to %d\n", my_parent);
-		data.orig = TOS_LOCAL_ADDRESS;
-		return call L4.send(my_parent, data);
-	}
+
 	
 	command result_t StdControl.init ()
 	{
 		int i;
-		dbg(DBG_USR3, "SpanningtreeM:OERP:init\n");
-		for(i = 0; i != MAX_NETWORK_SIZE; i++) {
+		dbg(DBG_USR3, "SpanningTreeM:OERP:init\n");
+		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
 			neighbors[i] = 0;
 		}
-		my_weight = 9999;
+		for(i = 0; i != MAX_TOPIC_NUM; i++) {
+			my_weight[i] = 9999;
+		}
 		my_parent = 0;
+		weight_counter = 0;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		dbg(DBG_USR3, "SpanningtreeM:OERP:start\n");
-		if(TOS_LOCAL_ADDRESS == 0) {
-			// If network is dynamic, you might need to chage this from one-shot to periodically
-			call Timer.start(TIMER_ONE_SHOT, 5000);
-		}
+		dbg(DBG_USR3, "SpanningTreeM:OERP:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		dbg(DBG_USR3, "SpanningtreeM:OERP:stop\n");
+		dbg(DBG_USR3, "SpanningTreeM:OERP:stop\n");
 		return SUCCESS;
 	}
 
-	task void forward_weight()
+	task void forwardWeight()
 	{
 		call L4.send(TOS_BCAST_ADDR, weight_data);
+	}
+
+	command ReturnCode_t OERP.send (Topic_t topic, Data data)
+	{
+		data.orig = TOS_LOCAL_ADDRESS;
+		if(my_weight[topic] == 9999) {
+			dbg(DBG_USR3, "SpanningTreeM:OERP:no path, data is dropped\n");
+			return FAIL;
+		}
+		dbg(DBG_USR3, "SpanningTreeM:OERP:send to %d\n", my_parent);
+		return call L4.send(my_parent, data);
 	}
 	
 	event ReturnCode_t L4.receive (uint16_t src, Data data)
 	{
-		dbg(DBG_USR3, "SpanningtreeM:OERP:receive from=%d orig=%d subject=%d\n", src, data.orig, data.subject);
+		dbg(DBG_USR3, "SpanningTreeM:OERP:receive from=%d orig=%d subject=%d\n", src, data.orig, data.subject);
 		if(data.subject == SUBJECT_DATA) {
 			if(TOS_LOCAL_ADDRESS != 0) {
-				dbg(DBG_USR3, "SpanningtreeM:OERP:receive data forward=%d\n", my_parent);
+				dbg(DBG_USR3, "SpanningTreeM:OERP:receive data forward=%d\n", my_parent);
 				return call L4.send(my_parent, data);
 			}
-		} else if(data.subject == SUBJECT_BASE_PHEROMONE_FLOOD) {
-			dbg(DBG_USR3, "SpanningtreeM:OERP:receive base pheromone incoming=%d current=%d\n", data.size, my_weight);
+		} else if(data.subject == SUBJECT_SUBSCRIBE) {
+			dbg(DBG_USR3, "SpanningTreeM:OERP:receive weight incoming=%ld current=%ld\n", data.size, my_weight);
 			neighbors[src] = 1;
-			if(data.size < my_weight) {
+			if(data.item[0] < my_weight[data.topic] || data.item[1] > weight_counter) {
 				#ifdef DEBUG_EDGE
 				dbg(DBG_USR1, "parent DIRECTED GRAPH: remove edge %d \n", my_parent);
 				#endif
@@ -106,31 +113,51 @@ implementation {
 				#ifdef DEBUG_EDGE
 				dbg(DBG_USR1, "parent DIRECTED GRAPH: add edge %d \n", my_parent);
 				#endif
-				dbg(DBG_USR3, "SpanningtreeM:OERP:receive forward\n");
-				my_weight = data.size++;
+				dbg(DBG_USR3, "SpanningTreeM:OERP:receive forward\n");
+				my_weight[data.topic] = data.item[0]++;
 				weight_data = data;
-				post forward_weight();
+				weight_counter = data.item[1];
+				post forwardWeight();
 			}
-			dbg(DBG_USR3, "SpanningtreeM:OERP:receive drop\n");
+			dbg(DBG_USR3, "SpanningTreeM:OERP:receive drop\n");
 			return SUCCESS;
 		}
 		return signal OERP.data_available(data.topic, data);	
 	}
 
+	
+	task void sendSubscription()
+	{
+		if(TOS_LOCAL_ADDRESS != 0) 
+			return;
+		dbg(DBG_USR1, "SpanningTreeM:OERP:sendSubscription %d\n", my_topic);
+		weight_data.subject = SUBJECT_SUBSCRIBE;
+		weight_data.topic = my_topic;
+		weight_data.item = (Data_t) malloc(sizeof(uint8_t) * 2);
+		weight_data.item[0] = 0;
+		weight_data.item[1] = weight_counter++;
+		weight_data.size = 2;
+		my_weight[my_topic] = 0;
+		post forwardWeight();
+	}
 	command ReturnCode_t OERP.subscribe (Topic_t topic)
 	{
+		dbg(DBG_USR3, "SpanningTreeM:OERP:subscribe %d\n", topic);
+		my_topic = topic;
+		//post sendSubscription();
+		// If network is dynamic, you might need to chage this from one-shot to periodically
+		//call Timer.start(TIMER_REPEAT, 10000);
+		call Timer.start(TIMER_ONE_SHOT, 10000);
+		return SUCCESS;
+	}
+	event result_t Timer.fired()
+	{
+		post sendSubscription();
 		return SUCCESS;
 	}
 
-	event result_t Timer.fired()
+	event ReturnCode_t L4.sendDone (Data data, bool success)
 	{
-		Data data;
-		if(TOS_LOCAL_ADDRESS != 0) 
-			return FAIL;
-		data.subject = SUBJECT_BASE_PHEROMONE_FLOOD;
-		data.topic = 0;
-		data.size = 0;
-		my_weight = 0;
-		return call L4.send(TOS_BCAST_ADDR, data);
+		return SUCCESS;
 	}
 }
