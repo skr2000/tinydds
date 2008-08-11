@@ -1,4 +1,4 @@
-//$Id: DHTM.nc,v 1.3 2008-08-07 21:27:53 pruet Exp $
+//$Id: DHTM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -49,39 +49,39 @@ implementation {
 	command ReturnCode_t OERP.subscribe (Topic_t topic)
 	{
 		Data data;
-		dbg(DBG_USR2,"DHTM:OERP:subscribe\n");
+		dbg(DBG_USR3,"DHTM:OERP:subscribe\n");
 		data.size = 0;
 		data.subject = SUBJECT_SUBSCRIBE;
 		return call L4.send(topic, data);
 	}
 	command ReturnCode_t OERP.send (Topic_t topic, Data data)
 	{
-		dbg(DBG_USR2,"DHTM:OERP:send\n");
+		dbg(DBG_USR3,"DHTM:OERP:send\n");
 		data.subject = SUBJECT_PUBLISH;
 		return call L4.send(topic, data);
 	}
 	
 	command result_t StdControl.init ()
 	{
-		dbg(DBG_USR2,"DHTM:OERP:init\n");
+		dbg(DBG_USR3,"DHTM:OERP:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		dbg(DBG_USR2,"DHTM:OERP:start\n");
+		dbg(DBG_USR3,"DHTM:OERP:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		dbg(DBG_USR2,"DHTM:OERP:stop\n");
+		dbg(DBG_USR3,"DHTM:OERP:stop\n");
 		return SUCCESS;
 	}
 
 	event ReturnCode_t L4.receive (uint16_t src, Data data)
 	{
-		dbg(DBG_USR2,"DHTM:OERP:receive subject=%d\n", data.subject);
+		dbg(DBG_USR3,"DHTM:OERP:receive subject=%d\n", data.subject);
 		return signal OERP.data_available(data.topic, data);	
 	}
 

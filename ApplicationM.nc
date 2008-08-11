@@ -1,4 +1,4 @@
-//$Id: ApplicationM.nc,v 1.5 2008-08-07 21:27:53 pruet Exp $
+//$Id: ApplicationM.nc,v 1.7 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -28,7 +28,8 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
 */
-
+includes TinyCDR;
+includes Apps_utils;
 module ApplicationM {
 	provides {
 		 interface StdControl;
@@ -57,7 +58,8 @@ implementation {
 	DataWriter_t data_writer = NIL;
 	SubscriberListener_t listener = NIL;
 	int id = 0;
-	int mod = 3;
+	int mod = 4;
+	int duty_cycle = 10000;
 	
 	command result_t StdControl.init ()
 	{
@@ -67,28 +69,28 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		SubscriberQos s_qos;
+		//SubscriberQos s_qos;
 		PublisherQos p_qos;
 		TopicQos t_qos;
-		DataReaderQos dr_qos;
+		//DataReaderQos dr_qos;
 		DataWriterQos dw_qos;
 		dbg(DBG_USR1,"ApplicationM:start\n");
 		if(TOS_LOCAL_ADDRESS == 0) {
-			subscriber = call DomainParticipant.create_subscriber(s_qos, NIL);
+			//subscriber = call DomainParticipant.create_subscriber(s_qos, NIL);
 		} else if(TOS_LOCAL_ADDRESS % mod== 0) {
 			publisher = call DomainParticipant.create_publisher(p_qos, NIL);
 		}
 		ts_topic = call DomainParticipant.create_topic("TempSensor", "", t_qos, NIL);
 		if(TOS_LOCAL_ADDRESS == 0) {
-			listener = call SubscriberListener.create(ts_topic);
-			call Subscriber.set_listener(listener, NIL);
-			data_reader = call Subscriber.create_datareader(ts_topic, dr_qos, listener);
+			//listener = call SubscriberListener.create(ts_topic);
+			//call Subscriber.set_listener(listener, NIL);
+			//data_reader = call Subscriber.create_datareader(ts_topic, dr_qos, listener);
 		} else if(TOS_LOCAL_ADDRESS % mod == 0) {
 			data_writer = call Publisher.create_datawriter (ts_topic, dw_qos, NIL);
 		}
 		if(TOS_LOCAL_ADDRESS != 0  && TOS_LOCAL_ADDRESS % mod == 0) {
 			dbg(DBG_USR1,"ApplicationM:timer:start\n");
-			call Timer.start(TIMER_REPEAT, 10000);
+			call Timer.start(TIMER_REPEAT, duty_cycle);
 		}
 		return SUCCESS;
 	}
@@ -101,19 +103,16 @@ implementation {
 
 	event result_t Timer.fired () 
 	{
-		Data data;
-		uint32_t t;
+		AppData_t data;
 		dbg(DBG_USR1,"ApplicationM:Timer:fired \n");
+		call Leds.redOn();
+
 		if(data_writer != NIL) {
-			t = call Time.getLow32();
-			data.item = (Data_t) malloc(sizeof(uint8_t) * (1 + BISNET_HEADER_SIZE));
-			data.item[0] = 's'; // sensor reading
-			data.size = 1 + BISNET_HEADER_SIZE;
-			data.subject = SUBJECT_DATA;
-			data.timestamp.sec = t/32768;
-			data.timestamp.nanosec = (t - data.timestamp.sec * 32768);
-			dbg(DBG_USR1,"ApplicationM:Timer:publish data %d\n", id);
-			call DataWriter.write(data_writer, data);
+			data.data1 = 100;
+			dbg(DBG_USR1,"ApplicationM:Timer:publish data %d %d\n", id, data.data1);
+			data.data2 = 100;
+			data.time = call Time.getLow32();
+			call DataWriter.write(data_writer, serialize(data), sizeof(AppData_t));
 			id++;
 		}
 		return SUCCESS;
@@ -129,6 +128,7 @@ implementation {
 	event ReturnCode_t SubscriberListener.data_available (Topic_t topic)
 	{
 		Data data;
+		AppData_t app_data;
 		uint32_t t = call Time.getLow32();
 		dbg(DBG_USR1,"ApplicationM:subscriberlistener:data_available\n");
 		call Leds.redToggle();
@@ -138,12 +138,13 @@ implementation {
 		}
 	
 		//FIXME: need real clock sync
-		if(t > (data.timestamp.sec * 32768 + data.timestamp.nanosec)) {
-			t = t - (data.timestamp.sec * 32768 + data.timestamp.nanosec);
+		app_data = deserialize(data.item);
+		if(t > app_data.time) {
+			t = t - app_data.time;
 		} else {
 			t = 0;
 		}
-		dbg(DBG_USR1, "Application:subscriberlistener:data_available:%d:%d:%d\n", data.orig, t, data.item[2]);
+		dbg(DBG_USR1, "Application:subscriberlistener:data_available:%d:%d:%d\n", data.orig, t, app_data.data2);
 		return RETCODE_OK;
 	}
 

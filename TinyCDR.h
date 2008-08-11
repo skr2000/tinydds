@@ -1,4 +1,4 @@
-//$Id: TinyCDR.h,v 1.2 2008-08-07 21:27:53 pruet Exp $
+//$Id: TinyCDR.h,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -29,7 +29,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-typedef uint8_t		cdr_char ;
+#ifndef TINYCDR_H
+#define TINYCDR_H
+typedef int8_t		cdr_char ;
 typedef uint8_t		cdr_octet;
 typedef int16_t		cdr_short;
 typedef uint16_t	cdr_ushort;
@@ -41,3 +43,9 @@ typedef float		cdr_float;
 typedef double		cdr_double;
 typedef double		cdr_longdouble;
 typedef uint8_t		cdr_boolean;
+
+typedef struct {
+	cdr_ulong length;
+	cdr_char *content;
+} cdr_string;
+#endif

@@ -1,4 +1,4 @@
-//$Id: DataWriter.nc,v 1.2 2008-07-28 06:32:55 pruet Exp $
+//$Id: DataWriter.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -47,7 +47,7 @@ interface DataWriter {
 	command  ReturnCode_t get_matched_subscriptions (InstanceHandleSeq subscription_handles);
 	command  ReturnCode_t get_matched_subscription_data (SubscriptionBuiltinTopicData subscription_data, InstanceHandle_t subscription_handle);
 	command DataWriter_t create (Topic_t topic);
-	command ReturnCode_t write (DataWriter_t data_writer, Data data);
+	command ReturnCode_t write (DataWriter_t data_writer, Data_t data, int size);
 	event ReturnCode_t data_available (DataWriter_t data_writer, Data data);
 	//Inherited from Entity
 	command  ReturnCode_t enable ();

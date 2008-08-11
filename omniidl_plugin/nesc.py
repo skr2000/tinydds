@@ -27,8 +27,11 @@
 #   Back-end which exports nesC
 
 
-# $Id: nesc.py,v 1.2 2008-06-25 16:15:28 pruet Exp $
+# $Id: nesc.py,v 1.4 2008-08-11 19:49:34 pruet Exp $
 # $Log: nesc.py,v $
+# Revision 1.4  2008-08-11 19:49:34  pruet
+# spanning tree work
+#
 # Revision 1.2  2008-06-25 16:15:28  pruet
 #
 # complete infrastructure
@@ -254,8 +257,9 @@ class NesCVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 			stTypedef.out(t)
 		f.close()
 		self.debug('\tFinish generating typedef\n')
-		
+	
 		# Handle all const
+		# TODO: put the copyright and condition check here(ifndef)
 		self.debug('\tStart generating const')
 		f = open(moduleName + '_const' + self.h_ext, 'w')
 		stCons = output.Stream(f, 2);
@@ -286,7 +290,7 @@ class NesCVisitor (idlvisitor.AstVisitor, idlvisitor.TypeVisitor):
 		# TODO: Some kind of template here?
 		f = open(moduleName + self.nesc_ext, 'w')
 		stConf = output.Stream(f, 2)
-		stConf.out('''//$Id: nesc.py,v 1.2 2008-06-25 16:15:28 pruet Exp $
+		stConf.out('''//$Id: nesc.py,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -371,7 +375,7 @@ POSSIBILITY OF SUCH DAMAGE.
 			self.debug('\tStart generating interface ' + i)
 			fi = open(i + self.nesc_ext, 'w')
 			stIntf = output.Stream(fi, 2)
-			stIntf.out('''//$Id: nesc.py,v 1.2 2008-06-25 16:15:28 pruet Exp $
+			stIntf.out('''//$Id: nesc.py,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 

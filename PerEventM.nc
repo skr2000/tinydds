@@ -1,4 +1,4 @@
-//$Id: PerEventM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: PerEventM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -39,19 +39,19 @@ module PerEventM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("PerEventM:init");
+		dbg(DBG_USR2,"PerEventM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("PerEventM:start");
+		dbg(DBG_USR2,"PerEventM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("PerEventM:stop");
+		dbg(DBG_USR2,"PerEventM:stop\n");
 		return SUCCESS;
 	}
 

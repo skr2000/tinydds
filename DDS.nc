@@ -1,4 +1,4 @@
-//$Id: DDS.nc,v 1.6 2008-08-07 21:27:53 pruet Exp $
+//$Id: DDS.nc,v 1.8 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -29,23 +29,23 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 		
-//This file is generated from dds_dcps.idl by omniidl (nesC backend)- omniORB_4_1. Do not edit manually.
+//This file is generated from ../dds_dcps.idl by omniidl (nesC backend)- omniORB_4_1. Do not edit manually.
 //Header block
 includes DDS_enum;
 includes DDS_type;
 includes DDS_struct;
 includes DDS_const;
 includes BaseUART;
-includes Apps_utils;
 includes WSN;
 includes TinyCDR;
+includes TinyGIOP;
 //Configuration block
 configuration DDS {
 }
 
 //Implementation block
 implementation {
-	components LedsC, TimerC, NeighborList, LogicalTime, SpanningTreeM, Main, GenericComm, ApplicationM, L4ALM, OneHopM, PublisherM, DomainParticipantM, DataReaderM, SubscriberListenerM, SubscriberM, TypeSupportM, EntityM, TopicM, DataWriterM, ContentFilteredTopicM;
+	components LedsC, TimerC, NeighborList, LogicalTime, SpanningTreeM, Main, GenericComm, ApplicationM, TinyGIOPM, L4ALM, OneHopM, PublisherM, DomainParticipantM, SubscriberListenerM, SubscriberM, TypeSupportM, EntityM, TopicM, DataReaderM, DataWriterM, ContentFilteredTopicM, UARTComm;
 
 	Main.StdControl -> TimerC;
 	Main.StdControl -> NeighborList;
@@ -53,18 +53,20 @@ implementation {
 	Main.StdControl -> SpanningTreeM;
 	Main.StdControl -> GenericComm;
 	Main.StdControl -> ApplicationM;
+	Main.StdControl -> TinyGIOPM;
 	Main.StdControl -> L4ALM;
 	Main.StdControl -> OneHopM;
 	Main.StdControl -> PublisherM;
 	Main.StdControl -> DomainParticipantM;
-	Main.StdControl -> DataReaderM;
 	Main.StdControl -> SubscriberListenerM;
 	Main.StdControl -> SubscriberM;
 	Main.StdControl -> TypeSupportM;
 	Main.StdControl -> EntityM;
 	Main.StdControl -> TopicM;
+	Main.StdControl -> DataReaderM;
 	Main.StdControl -> DataWriterM;
 	Main.StdControl -> ContentFilteredTopicM;
+	Main.StdControl -> UARTComm;
 	ApplicationM.Leds -> LedsC;
 	ApplicationM.Timer -> TimerC.Timer[unique("Timer")];;
 	ApplicationM.Time -> LogicalTime;
@@ -76,13 +78,18 @@ implementation {
 	ApplicationM.SubscriberListener -> SubscriberListenerM;
 	ApplicationM.Topic -> TopicM;
 	DataWriterM.Publisher -> PublisherM;
+	DataWriterM.Time -> LogicalTime;
 	SubscriberListenerM.DataReader -> DataReaderM;
 	SubscriberM.DataReader -> DataReaderM;
 	SubscriberM.SubscriberListener -> SubscriberListenerM;
 	PublisherM.DataWriter -> DataWriterM;
-	PublisherM.OERP -> SpanningTreeM;
-	SubscriberM.OERP -> SpanningTreeM;
 	DomainParticipantM.Topic -> TopicM;
+	PublisherM.TinyGIOP -> TinyGIOPM;
+	SubscriberM.TinyGIOP -> TinyGIOPM;
+	TinyGIOPM.OERP -> SpanningTreeM;
+	TinyGIOPM.SendUART -> UARTComm.SendMsg[AM_BASEUARTMSG];
+	TinyGIOPM.ReceiveUART -> UARTComm.ReceiveMsg[AM_BASEUARTMSG];
+
 	SpanningTreeM.Timer -> TimerC.Timer[unique("Timer")];;
 	SpanningTreeM.L4 -> L4ALM;
 	L4ALM.L3 -> OneHopM;

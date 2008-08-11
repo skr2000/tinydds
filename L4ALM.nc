@@ -1,4 +1,4 @@
-//$Id: L4ALM.nc,v 1.4 2008-08-07 21:27:53 pruet Exp $
+//$Id: L4ALM.nc,v 1.6 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -44,41 +44,41 @@ module L4ALM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("L4ALM:init");
+		dbg(DBG_USR2,"L4ALM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("L4ALM:start");
+		dbg(DBG_USR2,"L4ALM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("L4ALM:stop");
+		dbg(DBG_USR2,"L4ALM:stop\n");
 		return SUCCESS;
 	}
 	
 	
 	command ReturnCode_t L4.send (uint16_t dest, Data data)
 	{
-		debug("L4ALM:send");
+		dbg(DBG_USR2,"L4ALM:send\n");
 		return call L3.send(dest, data);	
 	}
 
 	event ReturnCode_t L3.receive(uint16_t src, Data data)
 	{
-		debug("L4ALM:receive");
+		dbg(DBG_USR2,"L4ALM:receive\n");
 		return signal L4.receive(src, data);
 	}
 
 	event ReturnCode_t L3.sendDone(Data data, bool success)
 	{
 		if(success) {
-			dbg(DBG_USR2, "L4ALM:L3:sendDne:success\n");
+			dbg(DBG_USR2, "L4ALM:L3:sendDne:success\n\n");
 		} else {
-			dbg(DBG_USR2, "L4ALM:L3:sendDne:failed\n");
+			dbg(DBG_USR2, "L4ALM:L3:sendDne:failed\n\n");
 		}
 		return signal L4.sendDone(data, success);
 	}

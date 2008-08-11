@@ -1,4 +1,4 @@
-//$Id: EntityM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: EntityM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -40,37 +40,37 @@ module EntityM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("EntityM:init");
+		dbg(DBG_USR2,"EntityM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("EntityM:start");
+		dbg(DBG_USR2,"EntityM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("EntityM:stop");
+		dbg(DBG_USR2,"EntityM:stop\n");
 		return SUCCESS;
 	}
 
 	command ReturnCode_t Entity.enable ()
 	{
-		debug("EntityM:enable");
+		dbg(DBG_USR2,"EntityM:enable\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command StatusCondition_t Entity.get_statuscondition ()
 	{
-		debug("EntityM:get_statuscondition");
+		dbg(DBG_USR2,"EntityM:get_statuscondition\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command StatusKindMask Entity.get_status_changes ()
 	{
-		debug("EntityM:get_status_changes");
+		dbg(DBG_USR2,"EntityM:get_status_changes\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 

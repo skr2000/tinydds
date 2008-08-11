@@ -1,4 +1,4 @@
-//$Id: DomainParticipantM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: DomainParticipantM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -49,7 +49,7 @@ implementation {
 	command result_t StdControl.init ()
 	{
 		int i;
-		debug("DomainParticipantM:init");
+		dbg(DBG_USR2,"DomainParticipantM:init\n");
 		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
 			subscriber_list[i] = NOT_AVAILABLE;
 			publisher_list[i] = 0;
@@ -60,14 +60,14 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		debug("DomainParticipantM:start");
+		dbg(DBG_USR2,"DomainParticipantM:start\n");
 		enabled = RETCODE_OK;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("DomainParticipantM:stop");
+		dbg(DBG_USR2,"DomainParticipantM:stop\n");
 		enabled = RETCODE_NOT_ENABLED;
 		return SUCCESS;
 	}
@@ -75,7 +75,7 @@ implementation {
 	command Publisher_t DomainParticipant.create_publisher (PublisherQos qos, PublisherListener_t a_listener)
 	{
 		int i;
-		debug("DomainParticipantM:create_publisher");
+		dbg(DBG_USR2,"DomainParticipantM:create_publisher\n");
 		if(a_listener == NIL) {
 			for(i = 0; i != MAX_MEMBER_SIZE; i++) {
 				if(publisher_list[i] == NOT_AVAILABLE) {
@@ -95,14 +95,14 @@ implementation {
 
 	command ReturnCode_t DomainParticipant.delete_publisher (Publisher_t p)
 	{
-		debug("DomainParticipantM:delete_publisher");
+		dbg(DBG_USR2,"DomainParticipantM:delete_publisher\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Subscriber_t DomainParticipant.create_subscriber (SubscriberQos qos, SubscriberListener_t a_listener)
 	{
 		int i;
-		debug("DomainParticipantM:create_subscriber");
+		dbg(DBG_USR2,"DomainParticipantM:create_subscriber\n");
 		if(a_listener == NIL) {
 			for(i = 0; i != MAX_MEMBER_SIZE; i++) {
 				if(subscriber_list[i] == NOT_AVAILABLE) {
@@ -123,178 +123,178 @@ implementation {
 
 	command ReturnCode_t DomainParticipant.delete_subscriber (Subscriber_t s)
 	{
-		debug("DomainParticipantM:delete_subscriber");
+		dbg(DBG_USR2,"DomainParticipantM:delete_subscriber\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Subscriber_t DomainParticipant.get_builtin_subscriber ()
 	{
-		debug("DomainParticipantM:get_builtin_subscriber");
+		dbg(DBG_USR2,"DomainParticipantM:get_builtin_subscriber\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Topic_t DomainParticipant.create_topic (char * topic_name, char * type_name, TopicQos qos, TopicListener_t a_listener)
 	{
-		debug("DomainParticipantM:create_topic");
+		dbg(DBG_USR2,"DomainParticipantM:create_topic\n");
 		return call Topic.create(topic_name);
 	}
 
 	command ReturnCode_t DomainParticipant.delete_topic (Topic_t a_topic)
 	{
-		debug("DomainParticipantM:delete_topic");
+		dbg(DBG_USR2,"DomainParticipantM:delete_topic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Topic_t DomainParticipant.find_topic (char * topic_name, Duration_t timeout)
 	{
-		debug("DomainParticipantM:find_topic");
+		dbg(DBG_USR2,"DomainParticipantM:find_topic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command TopicDescription_t DomainParticipant.lookup_topicdescription (char * name)
 	{
-		debug("DomainParticipantM:lookup_topicdescription");
+		dbg(DBG_USR2,"DomainParticipantM:lookup_topicdescription\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ContentFilteredTopic_t DomainParticipant.create_contentfilteredtopic (char * name, Topic_t related_topic, char * filter_expression, StringSeq filter_parameters)
 	{
-		debug("DomainParticipantM:create_contentfilteredtopic");
+		dbg(DBG_USR2,"DomainParticipantM:create_contentfilteredtopic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.delete_contentfilteredtopic (ContentFilteredTopic_t a_contentfilteredtopic)
 	{
-		debug("DomainParticipantM:delete_contentfilteredtopic");
+		dbg(DBG_USR2,"DomainParticipantM:delete_contentfilteredtopic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command MultiTopic_t DomainParticipant.create_multitopic (char * name, char * type_name, char * subscription_expression, StringSeq expression_parameters)
 	{
-		debug("DomainParticipantM:create_contentfilteredtopic");
+		dbg(DBG_USR2,"DomainParticipantM:create_contentfilteredtopic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.delete_multitopic (MultiTopic_t a_multitopic)
 	{
-		debug("DomainParticipantM:delete_multitopic");
+		dbg(DBG_USR2,"DomainParticipantM:delete_multitopic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.delete_contained_entities ()
 	{
-		debug("DomainParticipantM:delete_contained_entities");
+		dbg(DBG_USR2,"DomainParticipantM:delete_contained_entities\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.set_qos (DomainParticipantQos qos)
 	{
-		debug("DomainParticipantM:set_qos");
+		dbg(DBG_USR2,"DomainParticipantM:set_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DomainParticipant.get_qos (DomainParticipantQos qos)
 	{
-		debug("DomainParticipantM:get_qos");
+		dbg(DBG_USR2,"DomainParticipantM:get_qos\n");
 	}
 
 	command ReturnCode_t DomainParticipant.set_listener (DomainParticipantListener_t a_listener, StatusKindMask mask)
 	{
-		debug("DomainParticipantM:set_listener");
+		dbg(DBG_USR2,"DomainParticipantM:set_listener\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command DomainParticipantListener_t DomainParticipant.get_listener ()
 	{
-		debug("DomainParticipantM:get_listener");
+		dbg(DBG_USR2,"DomainParticipantM:get_listener\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.ignore_participant (InstanceHandle_t handle)
 	{
-		debug("DomainParticipantM:ignore_participant");
+		dbg(DBG_USR2,"DomainParticipantM:ignore_participant\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.ignore_topic (InstanceHandle_t handle)
 	{
-		debug("DomainParticipantM:ignore_topic");
+		dbg(DBG_USR2,"DomainParticipantM:ignore_topic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.ignore_publication (InstanceHandle_t handle)
 	{
-		debug("DomainParticipantM:ignore_publication");
+		dbg(DBG_USR2,"DomainParticipantM:ignore_publication\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DomainParticipant.ignore_subscription (InstanceHandle_t handle)
 	{
-		debug("DomainParticipantM:ignore_subscription");
+		dbg(DBG_USR2,"DomainParticipantM:ignore_subscription\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command DomainId_t DomainParticipant.get_domain_id ()
 	{
-		debug("DomainParticipantM:get_domain_id");
+		dbg(DBG_USR2,"DomainParticipantM:get_domain_id\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DomainParticipant.assert_liveliness ()
 	{
-		debug("DomainParticipantM:assert_liveliness");
+		dbg(DBG_USR2,"DomainParticipantM:assert_liveliness\n");
 	}
 
 	command ReturnCode_t DomainParticipant.set_default_publisher_qos (PublisherQos qos)
 	{
-		debug("DomainParticipantM:set_default_publisher_qos");
+		dbg(DBG_USR2,"DomainParticipantM:set_default_publisher_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DomainParticipant.get_default_publisher_qos (PublisherQos qos)
 	{
-		debug("DomainParticipantM:get_default_publisher_qos");
+		dbg(DBG_USR2,"DomainParticipantM:get_default_publisher_qos\n");
 	}
 
 	command ReturnCode_t DomainParticipant.set_default_subscriber_qos (SubscriberQos qos)
 	{
-		debug("DomainParticipantM:set_default_subscriber_qos");
+		dbg(DBG_USR2,"DomainParticipantM:set_default_subscriber_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DomainParticipant.get_default_subscriber_qos (SubscriberQos qos)
 	{
-		debug("DomainParticipantM:get_default_subscriber_qos");
+		dbg(DBG_USR2,"DomainParticipantM:get_default_subscriber_qos\n");
 	}
 
 	command ReturnCode_t DomainParticipant.set_default_topic_qos (TopicQos qos)
 	{
-		debug("DomainParticipantM:set_default_topic_qos");
+		dbg(DBG_USR2,"DomainParticipantM:set_default_topic_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DomainParticipant.get_default_topic_qos (TopicQos qos)
 	{
-		debug("DomainParticipantM:get_default_topic_qos");
+		dbg(DBG_USR2,"DomainParticipantM:get_default_topic_qos\n");
 	}
 
 	//Inherited from Entity
 	command ReturnCode_t DomainParticipant.enable ()
 	{
-		debug("DomainParticipantM:enable");
+		dbg(DBG_USR2,"DomainParticipantM:enable\n");
 		enabled = RETCODE_OK;
 		return enabled;
 	}
 	//Inherited from Entity
 	command StatusCondition_t DomainParticipant.get_statuscondition ()
 	{
-		debug("DomainParticipantM:get_statuscondition");
+		dbg(DBG_USR2,"DomainParticipantM:get_statuscondition\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 	//Inherited from Entity
 	command StatusKindMask DomainParticipant.get_status_changes ()
 	{
-		debug("DomainParticipantM:get_status_changes");
+		dbg(DBG_USR2,"DomainParticipantM:get_status_changes\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 }

@@ -1,4 +1,4 @@
-//$Id: ContentFilteredTopicM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: ContentFilteredTopicM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -41,44 +41,44 @@ module ContentFilteredTopicM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("ContentFilteredTopicM:init");
+		dbg(DBG_USR2,"ContentFilteredTopicM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("ContentFilteredTopicM:start");
+		dbg(DBG_USR2,"ContentFilteredTopicM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("ContentFilteredTopicM:stop");
+		dbg(DBG_USR2,"ContentFilteredTopicM:stop\n");
 		return SUCCESS;
 	}
 
 	command char* ContentFilteredTopic.get_filter_expression ()
 	{
-		debug("ContentFilteredTopicM:get_filter_expression");
+		dbg(DBG_USR2,"ContentFilteredTopicM:get_filter_expression\n");
 		return 0;
 	}
 
 	command StringSeq ContentFilteredTopic.get_expression_parameters ()
 	{
 		StringSeq s;
-		debug("ContentFilteredTopicM:get_expression_parameters");
+		dbg(DBG_USR2,"ContentFilteredTopicM:get_expression_parameters\n");
 		return s;
 	}
 
 	command ReturnCode_t ContentFilteredTopic.set_expression_parameters (StringSeq expression_parameters)
 	{
-		debug("ContentFilteredTopicM:set_expression_parameters");
+		dbg(DBG_USR2,"ContentFilteredTopicM:set_expression_parameters\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Topic_t ContentFilteredTopic.get_related_topic ()
 	{
-		debug("ContentFilteredTopicM:get_related_topic");
+		dbg(DBG_USR2,"ContentFilteredTopicM:get_related_topic\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 

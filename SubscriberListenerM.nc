@@ -1,4 +1,4 @@
-//$Id: SubscriberListenerM.nc,v 1.2 2008-07-28 06:32:55 pruet Exp $
+//$Id: SubscriberListenerM.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -48,7 +48,7 @@ implementation {
 	command result_t StdControl.init ()
 	{
 		int i;
-		debug("SubscriberListenerM:init");
+		dbg(DBG_USR2,"SubscriberListenerM:init\n");
 		enabled = RETCODE_NOT_ENABLED;
 		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
 			subscriber_listener_list[i] = NOT_AVAILABLE;
@@ -58,27 +58,27 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		debug("SubscriberListenerM:start");
+		dbg(DBG_USR2,"SubscriberListenerM:start\n");
 		enabled = RETCODE_OK;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("SubscriberListenerM:stop");
+		dbg(DBG_USR2,"SubscriberListenerM:stop\n");
 		enabled = RETCODE_NOT_ENABLED;
 		return SUCCESS;
 	}
 
 	command void SubscriberListener.on_data_on_readers (Subscriber_t subs)
 	{
-		debug("SubscriberListenerM:on_data_on_readers");
+		dbg(DBG_USR2,"SubscriberListenerM:on_data_on_readers\n");
 		signal SubscriberListener.data_available(subs);
 	}
 
 	command ReturnCode_t SubscriberListener.read(Topic_t topic, Data *data)
 	{
-		debug("SubscriberListenerM:read");
+		dbg(DBG_USR2,"SubscriberListenerM:read\n");
 		return call DataReader.read(topic, data);
 	}
 	

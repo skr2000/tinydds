@@ -1,4 +1,4 @@
-//$Id: TypeSupportM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: TypeSupportM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -39,19 +39,19 @@ module TypeSupportM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("TypeSupport:init");
+		dbg(DBG_USR2,"TypeSupport:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("TypeSupport:start");
+		dbg(DBG_USR2,"TypeSupport:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("TypeSupport:stop");
+		dbg(DBG_USR2,"TypeSupport:stop\n");
 		return SUCCESS;
 	}
 

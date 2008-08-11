@@ -1,4 +1,4 @@
-//$Id: QosPolicyM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: QosPolicyM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -43,19 +43,19 @@ module QosPolicyM {
 implementation {
 	command result_t StdControl.init ()
 	{
-		debug("QosPolicyM:init");
+		dbg(DBG_USR2,"QosPolicyM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("QosPolicyM:start");
+		dbg(DBG_USR2,"QosPolicyM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("QosPolicyM:stop");
+		dbg(DBG_USR2,"QosPolicyM:stop\n");
 		return SUCCESS;
 	}
 
