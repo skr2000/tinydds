@@ -1,4 +1,4 @@
-//$Id: TopicM.nc,v 1.4 2008-08-07 21:27:53 pruet Exp $
+//$Id: TopicM.nc,v 1.6 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -33,6 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //Ancestors List:
 //	Entity
 //	TopicDescription
+includes Hash;
 module TopicM {
 	provides {
 		 interface StdControl;
@@ -78,25 +79,13 @@ implementation {
 	command Topic_t Topic.create (uint8_t* topic_name)
 	{
 		int i;
-		int l;
 		uint32_t h;
-		uint32_t g;
+		//uint32_t g;
 	
-		//PJW hash here
-		l = strlen(topic_name);
-		h = 0;
-		for(i = 0; i != l; i++) {
-			h = (h << 4) + topic_name[i];
-			g = h & 0xf0000000;
-			if (g != 0) {
-				h = h ^ (g >> 24);
-				h = h ^ g;
-			}
-		}
-		h = h % MAX_TOPIC_NUM;
+		h = hash(topic_name);
 		dbg(DBG_USR2, "TopicM:create:topic=%d\n", h);
 		if(topic_list[h] == 0) {
-			topic_list[h] = (uint8_t *)malloc(sizeof(uint8_t) * l);
+			topic_list[h] = (uint8_t *)malloc(sizeof(uint8_t) * strlen(topic_name));
 			strcpy(topic_list[h], topic_name);
 			return h;
 		} else if(strcmp(topic_name, topic_list[h]) == 0) {

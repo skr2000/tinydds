@@ -1,4 +1,4 @@
-//$Id: SubscriberM.nc,v 1.2 2008-07-28 06:32:55 pruet Exp $
+//$Id: SubscriberM.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -38,23 +38,23 @@ module SubscriberM {
 		interface Subscriber;
 	}
 	uses {
-		interface OERP;
+		interface TinyGIOP;
 		interface DataReader;
 		interface SubscriberListener;
 	}
 }
 implementation {
 	ReturnCode_t enabled;
-	SubscriberListener_t subscriber_listener[MAX_MEMBER_SIZE];
-	DataReaderListener_t data_reader_listener[MAX_MEMBER_SIZE];
+	SubscriberListener_t subscriber_listener[MAX_TOPIC_NUM];
+	DataReaderListener_t data_reader_listener[MAX_TOPIC_NUM];
 	
 	
 	command result_t StdControl.init ()
 	{
 		int i;
-		debug("SubscriberM:init");
+		dbg(DBG_USR2,"SubscriberM:init\n");
 		enabled = RETCODE_NOT_ENABLED;
-		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+		for(i = 0; i != MAX_TOPIC_NUM; i++) {
 			subscriber_listener[i] = NOT_AVAILABLE;
 			data_reader_listener[i] = NOT_AVAILABLE;
 		}
@@ -63,14 +63,14 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		debug("SubscriberM:start");
+		dbg(DBG_USR2,"SubscriberM:start\n");
 		enabled = RETCODE_OK;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("SubscriberM:stop");
+		dbg(DBG_USR2,"SubscriberM:stop\n");
 		enabled = RETCODE_NOT_ENABLED;
 		return SUCCESS;
 	}
@@ -78,36 +78,36 @@ implementation {
 	command DataReader_t Subscriber.create_datareader (TopicDescription_t a_topic, DataReaderQos qos, DataReaderListener_t a_listener)
 	{
 		DataReader_t r;
-		debug("SubscriberM:create_datareader");
+		dbg(DBG_USR2,"SubscriberM:create_datareader\n");
 		r = call DataReader.create(a_topic);
 		if(r == NOT_AVAILABLE) r = a_topic;
 		data_reader_listener[a_topic] = a_listener;
-		call OERP.subscribe(a_topic);
+		call TinyGIOP.subscribe(a_topic);
 		return r;
 	}
 
 	command ReturnCode_t Subscriber.delete_datareader (DataReader_t a_datareader)
 	{
-		debug("SubscriberM:delete_datareader");
+		dbg(DBG_USR2,"SubscriberM:delete_datareader\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t Subscriber.delete_contained_entities ()
 	{
-		debug("SubscriberM:delete_contained_entities");
+		dbg(DBG_USR2,"SubscriberM:delete_contained_entities\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command DataReader_t Subscriber.lookup_datareader (char * topic_name)
 	{
 		DataReader_t r;
-		debug("SubscriberM:lookup_datareader");
+		dbg(DBG_USR2,"SubscriberM:lookup_datareader\n");
 		return r;
 	}
 
 	command ReturnCode_t Subscriber.get_datareaders (DataReaderSeq readers, SampleStateMask sample_states, ViewStateMask view_states, InstanceStateMask instance_states)
 	{
-		debug("SubscriberM:get_datareaders");
+		dbg(DBG_USR2,"SubscriberM:get_datareaders\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
@@ -117,7 +117,7 @@ implementation {
 
 	command ReturnCode_t Subscriber.set_qos (SubscriberQos qos)
 	{
-		debug("SubscriberM:set_qos");
+		dbg(DBG_USR2,"SubscriberM:set_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
@@ -127,7 +127,7 @@ implementation {
 
 	command ReturnCode_t Subscriber.set_listener (SubscriberListener_t a_listener, StatusKindMask mask)
 	{
-		debug("SubscriberM:set_listener");
+		dbg(DBG_USR2,"SubscriberM:set_listener\n");
 		subscriber_listener[a_listener] = RETCODE_OK;
 		return RETCODE_OK;
 	}
@@ -135,48 +135,48 @@ implementation {
 	command SubscriberListener_t Subscriber.get_listener ()
 	{
 		SubscriberListener_t l;
-		debug("SubscriberM:get_listener");
+		dbg(DBG_USR2,"SubscriberM:get_listener\n");
 		return l;
 	}
 
 	command ReturnCode_t Subscriber.begin_access ()
 	{
-		debug("SubscriberM:begin_access");
+		dbg(DBG_USR2,"SubscriberM:begin_access\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t Subscriber.end_access ()
 	{
-		debug("SubscriberM:end_access");
+		dbg(DBG_USR2,"SubscriberM:end_access\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command DomainParticipant_t Subscriber.get_participant ()
 	{
 		DomainParticipant_t p;
-		debug("SubscriberM:get_listener");
+		dbg(DBG_USR2,"SubscriberM:get_listener\n");
 		return p;
 	}
 
 	command ReturnCode_t Subscriber.set_default_datareader_qos (DataReaderQos qos)
 	{
-		debug("SubscriberM:end_access");
+		dbg(DBG_USR2,"SubscriberM:end_access\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void Subscriber.get_default_datareader_qos (DataReaderQos qos)
 	{
-		debug("SubscriberM:get_default_datareader_qos");
+		dbg(DBG_USR2,"SubscriberM:get_default_datareader_qos\n");
 	}
 	
-	event ReturnCode_t OERP.data_available (Topic_t topic, Data data)
+	event ReturnCode_t TinyGIOP.data_available (Topic_t topic, Data data)
 	{
 		//FIXME: I'm not sure about this, we suppose to pass Subscriber_t, but because
 		//of limitation in TinyOS, we might need to pass Topic_t instead
-		debug("SubscriberM:data_available");
+		dbg(DBG_USR2,"SubscriberM:data_available %d\n", subscriber_listener[topic]);
 		call DataReader.on_data_available(topic, data);
 		if(subscriber_listener[topic] == RETCODE_OK) {
-			debug("SubscriberM:SubscriberListener.on_data_readers");
+			dbg(DBG_USR2,"SubscriberM:SubscriberListener.on_data_readers\n");
 			call SubscriberListener.on_data_on_readers(topic);
 		}
 		if(data_reader_listener[topic] == RETCODE_OK) {
@@ -188,27 +188,27 @@ implementation {
 
 	command ReturnCode_t Subscriber.copy_from_topic_qos (DataReaderQos a_datareader_qos, TopicQos a_topic_qos)
 	{
-		debug("SubscriberM:copy_from_topic_qos");
+		dbg(DBG_USR2,"SubscriberM:copy_from_topic_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	//Inherited from Entity
 	command ReturnCode_t Subscriber.enable ()
 	{
-		debug("SubscriberM:enable");
+		dbg(DBG_USR2,"SubscriberM:enable\n");
 		enabled = RETCODE_OK;
 		return enabled;
 	}
 	//Inherited from Entity
 	command StatusCondition_t Subscriber.get_statuscondition ()
 	{
-		debug("SubscriberM:get_statuscondition");
+		dbg(DBG_USR2,"SubscriberM:get_statuscondition\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 	//Inherited from Entity
 	command StatusKindMask Subscriber.get_status_changes ()
 	{
-		debug("SubscriberM:get_status_changes");
+		dbg(DBG_USR2,"SubscriberM:get_status_changes\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 

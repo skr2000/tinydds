@@ -1,4 +1,4 @@
-//$Id: ReliabilityQosPolicyM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
+//$Id: TinyGIOP.nc,v 1.2 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -28,31 +28,10 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
 */
-
-//This file is generated from IDL. please use it as the skelton file for your module
-module ReliabilityQosPolicyM {
-	provides {
-		 interface StdControl;
-		 interface ReliabilityQosPolicy;
-	}
-}
-implementation {
-	command result_t StdControl.init ()
-	{
-		dbg(DBG_USR2,"ReliabilityQosPolicyM:init\n");
-		return SUCCESS;
-	}
-
-	command result_t StdControl.start ()
-	{
-		dbg(DBG_USR2,"ReliabilityQosPolicyM:start\n");
-		return SUCCESS;
-	}
-
-	command result_t StdControl.stop ()
-	{
-		dbg(DBG_USR2,"ReliabilityQosPolicyM:stop\n");
-		return SUCCESS;
-	}
-
+			
+//This file is generated from IDL/Configuration. Do not edit manually
+interface TinyGIOP {
+	command ReturnCode_t send (Topic_t topic, Data data);
+	command ReturnCode_t subscribe (Topic_t topic);
+	event ReturnCode_t data_available (Topic_t topic, Data data);
 }

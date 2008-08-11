@@ -1,4 +1,4 @@
-//$Id: OneHopM.nc,v 1.3 2008-08-07 21:27:53 pruet Exp $
+//$Id: OneHopM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -65,20 +65,20 @@ module OneHopM {
 
 	command result_t StdControl.init ()
 	{
-		dbg(DBG_USR2,":OneHopM:init\n");
+		dbg(DBG_USR3,"OneHopM:init\n");
 		msg = &msg_buf;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		dbg(DBG_USR2,":OneHopM:start\n");
+		dbg(DBG_USR3,"OneHopM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		dbg(DBG_USR2,":OneHopM:stop\n");
+		dbg(DBG_USR3,"OneHopM:stop\n");
 		return SUCCESS;
 	}
 
@@ -88,8 +88,8 @@ module OneHopM {
 		Data_Msg_Ptr data_msg_ptr;
 		Data data;
 		data_msg_ptr = (Data_Msg_Ptr) msg_ptr->data;
-		dbg(DBG_USR2,":OneHopM:Receive:receive\n");
-		dbg(DBG_USR2, ":OneHopM:Receive:data:%d:%d:%d:%d:%s\n", data_msg_ptr->src, data_msg_ptr->orig, data_msg_ptr->subject, data_msg_ptr->topic, data_msg_ptr->data);
+		dbg(DBG_USR3,"OneHopM:Receive:receive\n");
+		dbg(DBG_USR3, "OneHopM:Receive:data:%d:%d:%d:%d:%s\n", data_msg_ptr->src, data_msg_ptr->orig, data_msg_ptr->subject, data_msg_ptr->topic, data_msg_ptr->data);
 		data.timestamp.sec = data_msg_ptr->sec;
 		data.timestamp.nanosec = data_msg_ptr->nanosec;
 		data.topic = data_msg_ptr->topic;
@@ -99,7 +99,7 @@ module OneHopM {
 		data.subject = data_msg_ptr->subject;
 		data.item = (Data_t)malloc(sizeof(uint8_t) * data.size);
 		if(call Neighbors.isNeighbor(msg_ptr->addr) == FALSE) {
-			dbg(DBG_USR2,"OneHopCM:Receive:add neighbor %d\n", msg_ptr->addr);
+			dbg(DBG_USR3,"OneHopCM:Receive:add neighbor %d\n", msg_ptr->addr);
 			call Neighbors.addNeighbor(msg_ptr->addr);
 		}
 		memcpy(data.item, data_msg_ptr->data, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
@@ -115,7 +115,7 @@ module OneHopM {
 		Data data = currentData;
 		data_msg_ptr = (Data_Msg_Ptr) msg->data;
 		retry = currentRetry;
-		dbg(DBG_USR2,":OneHopM:sendData:subject %d\n", data.subject);
+		dbg(DBG_USR3,"OneHopM:sendData:subject %d\n", data.subject);
 		//data_msg_ptr = call Send.getBuffer(msg, &len);
 		data_msg_ptr->src = TOS_LOCAL_ADDRESS;
 		data_msg_ptr->orig = data.orig;
@@ -126,15 +126,15 @@ module OneHopM {
 		data_msg_ptr->subject = data.subject;
 		memcpy(data_msg_ptr->data, data.item, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
 		len = sizeof(Data_Msg) + MAX_DATA_LEN;
-		dbg(DBG_USR2, ":OneHopM:sendData:send to %d len %d\n", dest, len);
+		dbg(DBG_USR3, "OneHopM:sendData:send to %d len %d\n", dest, len);
 		if (call SendMsg.send(dest, (uint16_t) len, msg) != SUCCESS) {
 		//if (call SendMsg.send(TOS_BCAST_ADDR, (uint16_t) len, msg) != SUCCESS) {
-			dbg(DBG_USR2, ":OneHopM:send: Send failed for new packet\n");
+			dbg(DBG_USR3, "OneHopM:send: Send failed for new packet\n");
 			// This is a hack here
 			currentRetry--;
 			currentData.item[7]++;
 			if(currentRetry > 0 && currentRetry != NIL) {
-				dbg(DBG_USR2,":OneHopM:send:retry %d\n", currentRetry);
+				dbg(DBG_USR3,"OneHopM:send:retry %d\n", currentRetry);
 				post sendData();
 			} else {
 				//spread alert pheromone
@@ -142,17 +142,17 @@ module OneHopM {
 				currentRetry = NIL;
 			}
 		} else {
-			dbg(DBG_USR2, ":OneHopM:send success\n");
+			dbg(DBG_USR3, "OneHopM:send success\n");
 		}
 	}
 
 	event result_t SendMsg.sendDone (TOS_MsgPtr sentBuffer, result_t success) 
 	{
-		dbg(DBG_USR2,":OneHopM:send:sendDone\n");
+		dbg(DBG_USR3,"OneHopM:send:sendDone\n");
 		if(success) {
 			currentRetry = NIL;
 			if(buffer_start != buffer_stop) {
-				dbg(DBG_USR2, ":OneHopM:send:sendDone:send buffer\n");
+				dbg(DBG_USR3, "OneHopM:send:sendDone:send buffer\n");
 				buffer_start++;
 				if(buffer_start > MAX_BUFFER_SIZE) buffer_start = 0;
 				currentDest = dest_buf[buffer_stop];
@@ -165,12 +165,12 @@ module OneHopM {
 	}
 	command ReturnCode_t L3.send (uint16_t dest, Data data)
 	{
-		dbg(DBG_USR2,":OneHopM:send to %d\n", dest);
+		dbg(DBG_USR3,"OneHopM:send to %d\n", dest);
 		if(currentRetry != NIL) {
 			buffer_stop++;
 			if(buffer_stop > MAX_BUFFER_SIZE) buffer_stop = 0;
 			if(buffer_start == buffer_stop) {
-				dbg(DBG_USR2,":OneHopM:error:data buffer overflow\n");
+				dbg(DBG_USR3,"OneHopM:error:data buffer overflow\n");
 				return RETCODE_ERROR;
 			}
 			buffer[buffer_stop] = data;

@@ -1,4 +1,4 @@
-//$Id: DataWriterM.nc,v 1.3 2008-07-29 19:39:40 pruet Exp $
+//$Id: DataWriterM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -39,17 +39,18 @@ module DataWriterM {
 	}
 	uses {
 		 interface Publisher;
+		 interface Time;
 	}
 }
 implementation {
 	ReturnCode_t enabled;
-	DataReader_t data_writer[MAX_MEMBER_SIZE];
+	DataReader_t data_writer[MAX_TOPIC_NUM];
 	command result_t StdControl.init ()
 	{
 		int i;
-		debug("DataWriterM:init");
+		dbg(DBG_USR2,"DataWriterM:init\n");
 		enabled = RETCODE_NOT_ENABLED;
-		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+		for(i = 0; i != MAX_TOPIC_NUM; i++) {
 			data_writer[i] = NOT_AVAILABLE;
 		}
 		return SUCCESS;
@@ -57,101 +58,101 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		debug("DataWriterM:start");
+		dbg(DBG_USR2,"DataWriterM:start\n");
 		enabled = RETCODE_OK;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("DataWriterM:stop");
+		dbg(DBG_USR2,"DataWriterM:stop\n");
 		enabled = RETCODE_NOT_ENABLED;
 		return SUCCESS;
 	}
 
 	command ReturnCode_t DataWriter.set_qos (DataWriterQos qos)
 	{
-		debug("DataWriterM:set_qos");
+		dbg(DBG_USR2,"DataWriterM:set_qos\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command void DataWriter.get_qos (DataWriterQos qos)
 	{
-		debug("DataWriterM:get_qos");
+		dbg(DBG_USR2,"DataWriterM:get_qos\n");
 	}
 
 	command ReturnCode_t DataWriter.set_listener (DataWriterListener_t a_listener, StatusKindMask mask)
 	{
-		debug("DataWriterM:set_listener");
+		dbg(DBG_USR2,"DataWriterM:set_listener\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command DataWriterListener_t DataWriter.get_listener ()
 	{
-		debug("DataWriterM:get_listener");
+		dbg(DBG_USR2,"DataWriterM:get_listener\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command Topic_t DataWriter.get_topic (DataWriter_t a_data_writer)
 	{
-		debug("DataWriterM:get_topic");
+		dbg(DBG_USR2,"DataWriterM:get_topic\n");
 		return a_data_writer;
 	}
 
 	command Publisher_t DataWriter.get_publisher ()
 	{
-		debug("DataWriterM:get_publisher");
+		dbg(DBG_USR2,"DataWriterM:get_publisher\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command LivelinessLostStatus DataWriter.get_liveliness_lost_status ()
 	{
 		LivelinessLostStatus s;
-		debug("DataWriterM:get_liveliness_lost_status");
+		dbg(DBG_USR2,"DataWriterM:get_liveliness_lost_status\n");
 		return s;
 	}
 
 	command OfferedDeadlineMissedStatus DataWriter.get_offered_deadline_missed_status ()
 	{
 		OfferedDeadlineMissedStatus s;
-		debug("DataWriterM:get_offered_deadline_missed_status");
+		dbg(DBG_USR2,"DataWriterM:get_offered_deadline_missed_status\n");
 		return s;
 	}
 
 	command OfferedIncompatibleQosStatus DataWriter.get_offered_incompatible_qos_status ()
 	{
 		OfferedIncompatibleQosStatus s;
-		debug("DataWriterM:get_offered_incompatible_qos_status");
+		dbg(DBG_USR2,"DataWriterM:get_offered_incompatible_qos_status\n");
 		return s;
 	}
 
 	command PublicationMatchStatus DataWriter.get_publication_match_status ()
 	{
 		PublicationMatchStatus s;
-		debug("DataWriterM:get_publication_match_status");
+		dbg(DBG_USR2,"DataWriterM:get_publication_match_status\n");
 		return s;
 	}
 
 	command void DataWriter.assert_liveliness ()
 	{
-		debug("DataWriterM:assert_liveliness");
+		dbg(DBG_USR2,"DataWriterM:assert_liveliness\n");
 	}
 
 	command ReturnCode_t DataWriter.get_matched_subscriptions (InstanceHandleSeq subscription_handles)
 	{
-		debug("DataWriterM:get_matched_subscriptions");
+		dbg(DBG_USR2,"DataWriterM:get_matched_subscriptions\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 
 	command ReturnCode_t DataWriter.get_matched_subscription_data (SubscriptionBuiltinTopicData subscription_data, InstanceHandle_t subscription_handle)
 	{
-		debug("DataWriterM:get_matched_subscription_data");
+		dbg(DBG_USR2,"DataWriterM:get_matched_subscription_data\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 	
 	command DataWriter_t DataWriter.create (Topic_t topic)
 	{
-		debug("DataWriterM:create");
+		dbg(DBG_USR2,"DataWriterM:create %d\n", topic);
 		if(data_writer[topic] == NOT_AVAILABLE) {
 			data_writer[topic] = 1;
 			return topic;
@@ -160,34 +161,39 @@ implementation {
 		return topic;
 	}
 	
-	command ReturnCode_t DataWriter.write (DataWriter_t _data_writer, Data data)
+	command ReturnCode_t DataWriter.write (DataWriter_t _data_writer, Data_t _data, int _size)
 	{
-		char buf[100];
-		debug("DataWriterM:write");
+		Data data;
+		uint32_t t = call Time.getLow32();
+		dbg(DBG_USR2,"DataWriterM:write %d\n", _data_writer);
 		if(data_writer[_data_writer] == NOT_AVAILABLE) return NOT_AVAILABLE;
 		data.topic = _data_writer;
-		sprintf(buf, "DataWriterM:signal:data_available:%d", _data_writer);
-		debug(buf);
+		data.item = _data;
+		data.size = _size;
+		data.subject = SUBJECT_DATA;
+		data.timestamp.sec = t / 1024;
+		data.timestamp.nanosec = t - (t / 1024);
+		dbg(DBG_USR2, "DataWriterM:signal:data_available:%d", _data_writer);
 		return signal DataWriter.data_available (_data_writer, data);
 	}
 
 	//Inherited from Entity
 	command ReturnCode_t DataWriter.enable ()
 	{
-		debug("DataWriterM:enable");
+		dbg(DBG_USR2,"DataWriterM:enable\n");
 		enabled = RETCODE_OK;
 		return enabled;
 	}
 	//Inherited from Entity
 	command StatusCondition_t DataWriter.get_statuscondition ()
 	{
-		debug("DataWriterM:get_statuscondition");
+		dbg(DBG_USR2,"DataWriterM:get_statuscondition\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 	//Inherited from Entity
 	command StatusKindMask DataWriter.get_status_changes ()
 	{
-		debug("DataWriterM:get_status_changes");
+		dbg(DBG_USR2,"DataWriterM:get_status_changes\n");
 		return NOT_IMPLEMENTED_YET;
 	}
 }

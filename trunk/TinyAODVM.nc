@@ -1,4 +1,4 @@
-//$Id: TinyAODVM.nc,v 1.4 2008-08-07 21:27:53 pruet Exp $
+//$Id: TinyAODVM.nc,v 1.6 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -70,26 +70,26 @@ module TinyAODVM {
 
 	command result_t StdControl.init ()
 	{
-		dbg(DBG_USR2,"TinyAODVM:init\n");
+		dbg(DBG_USR3,"TinyAODVM:init\n");
 		msg = &msg_buf;
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		dbg(DBG_USR2,"TinyAODVM:start\n");
+		dbg(DBG_USR3,"TinyAODVM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		dbg(DBG_USR2,"TinyAODVM:stop\n");
+		dbg(DBG_USR3,"TinyAODVM:stop\n");
 		return SUCCESS;
 	}
 
 	event result_t Send.sendDone (TOS_MsgPtr sentBuffer, result_t success) 
 	{
-		dbg(DBG_USR2,"TinyAODVM:send:sendDone\n");
+		dbg(DBG_USR3,"TinyAODVM:send:sendDone\n");
 		return SUCCESS;
 	}
 
@@ -97,9 +97,9 @@ module TinyAODVM {
 	{
 		Data_Msg_Ptr data_msg_ptr;
 		Data data;
-		dbg(DBG_USR2,"TinyAODVM:Receive:receive\n");
+		dbg(DBG_USR3,"TinyAODVM:Receive:receive\n");
 		data_msg_ptr = (Data_Msg_Ptr) payload;
-		dbg(DBG_USR2, "TinyAODVM:Receive:data:%d:%d:%s\n", data_msg_ptr->src, data_msg_ptr->topic, data_msg_ptr->data);
+		dbg(DBG_USR3, "TinyAODVM:Receive:data:%d:%d:%s\n", data_msg_ptr->src, data_msg_ptr->topic, data_msg_ptr->data);
 		data.timestamp.sec = data_msg_ptr->sec;
 		data.timestamp.nanosec = data_msg_ptr->nanosec;
 		data.topic = data_msg_ptr->topic;
@@ -114,7 +114,7 @@ module TinyAODVM {
 
 	event PacketResult_t Intercept.intercept (TOS_MsgPtr forward_msg, void *payload, uint16_t len) 
 	{
-		dbg(DBG_USR2,"TinyAODVM:Intercept:intercept\n");
+		dbg(DBG_USR3,"TinyAODVM:Intercept:intercept\n");
 		return SUCCESS;
 	}
 
@@ -125,7 +125,7 @@ module TinyAODVM {
 		uint8_t dest = currentDest;
 		Data data = currentData;
 		retry = currentRetry;
-		dbg(DBG_USR2,"TinyAODVM:sendData\n");
+		dbg(DBG_USR3,"TinyAODVM:sendData\n");
 		data_msg_ptr = call Send.getBuffer(msg, &len);
 		data_msg_ptr->src = TOS_LOCAL_ADDRESS;
 		data_msg_ptr->sec = data.timestamp.sec;
@@ -134,21 +134,21 @@ module TinyAODVM {
 		data_msg_ptr->topic = data.topic;
 		data_msg_ptr->subject = data.subject;
 		memcpy(data_msg_ptr->data, data.item, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
-		dbg(DBG_USR2, "send to %d\n", dest);
+		dbg(DBG_USR3, "send to %d\n", dest);
 		if (call SendMHopMsg.sendTTL(dest, (uint16_t) len, msg, 0) != SUCCESS) {
-			dbg(DBG_USR2, "TinyAODVM:send: Send failed for new packet\n");
+			dbg(DBG_USR3, "TinyAODVM:send: Send failed for new packet\n");
 			currentRetry--;
 			if(currentRetry > 0 && currentRetry != NIL) {
-				dbg(DBG_USR2,"TinyAODVM:send:retry %d\n", currentRetry);
+				dbg(DBG_USR3,"TinyAODVM:send:retry %d\n", currentRetry);
 				post sendData();
 			} else {
 				currentRetry = NIL;
 			}
 		} else {
-			dbg(DBG_USR2, "TinyAODVM:send success\n");
+			dbg(DBG_USR3, "TinyAODVM:send success\n");
 			currentRetry = NIL;
 			if(buffer_start != buffer_stop) {
-				dbg(DBG_USR2, "TinyAODVM:send buffer\n");
+				dbg(DBG_USR3, "TinyAODVM:send buffer\n");
 				buffer_start++;
 				if(buffer_start > MAX_BUFFER_SIZE) buffer_start = 0;
 				currentDest = dest;
@@ -161,12 +161,12 @@ module TinyAODVM {
 
 	command ReturnCode_t L3.send (uint16_t dest, Data data)
 	{
-		dbg(DBG_USR2,"TinyAODVM:send\n");
+		dbg(DBG_USR3,"TinyAODVM:send\n");
 		if(currentRetry != NIL) {
 			buffer_stop++;
 			if(buffer_stop > MAX_BUFFER_SIZE) buffer_stop = 0;
 			if(buffer_start == buffer_stop) {
-				dbg(DBG_USR2,"TinyAODVM:error:data buffer overflow\n");
+				dbg(DBG_USR3,"TinyAODVM:error:data buffer overflow\n");
 				return RETCODE_ERROR;
 			}
 			buffer[buffer_stop] = data;
@@ -188,10 +188,10 @@ module TinyAODVM {
 	event TOS_MsgPtr ReceiveRreq.receive(TOS_MsgPtr receivedMsg) 
 	{
 		wsnAddr prevHop;
-		//dbg(DBG_USR2,"TinyAODVCM:RREQ:receive");
+		//dbg(DBG_USR3,"TinyAODVCM:RREQ:receive");
 		prevHop = call SingleHopMsg.getSrcAddress(receivedMsg);
 		if(call Neighbors.isNeighbor(prevHop) == FALSE) {
-			//dbg(DBG_USR2,"TinyAODVCM:RREQ:receive:add neighbor %d\n", prevHop);
+			//dbg(DBG_USR3,"TinyAODVCM:RREQ:receive:add neighbor %d\n", prevHop);
 			call Neighbors.addNeighbor(prevHop);
 		}
 

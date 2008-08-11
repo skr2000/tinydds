@@ -1,4 +1,4 @@
-//$Id: SpanningTreeM.nc,v 1.3 2008-08-07 21:27:53 pruet Exp $
+//$Id: SpanningTreeM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -122,7 +122,7 @@ implementation {
 			dbg(DBG_USR3, "SpanningTreeM:OERP:receive drop\n");
 			return SUCCESS;
 		}
-		return signal OERP.data_available(data.topic, data);	
+		return signal OERP.data_available(src, data);	
 	}
 
 	
@@ -144,10 +144,10 @@ implementation {
 	{
 		dbg(DBG_USR3, "SpanningTreeM:OERP:subscribe %d\n", topic);
 		my_topic = topic;
-		//post sendSubscription();
+		post sendSubscription();
 		// If network is dynamic, you might need to chage this from one-shot to periodically
 		//call Timer.start(TIMER_REPEAT, 10000);
-		call Timer.start(TIMER_ONE_SHOT, 10000);
+		//call Timer.start(TIMER_ONE_SHOT, 10000);
 		return SUCCESS;
 	}
 	event result_t Timer.fired()

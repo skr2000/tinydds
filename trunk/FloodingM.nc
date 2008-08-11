@@ -1,4 +1,4 @@
-//$Id: FloodingM.nc,v 1.1.1.1 2008-06-11 20:33:09 pruet Exp $
+//$Id: FloodingM.nc,v 1.3 2008-08-11 19:49:34 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -48,19 +48,19 @@ implementation {
 	
 	command result_t StdControl.init ()
 	{
-		debug("FloodingM:init");
+		dbg(DBG_USR2,"FloodingM:init\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
-		debug("FloodingM:start");
+		dbg(DBG_USR2,"FloodingM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		debug("FloodingM:stop");
+		dbg(DBG_USR2,"FloodingM:stop\n");
 		return SUCCESS;
 	}
 
