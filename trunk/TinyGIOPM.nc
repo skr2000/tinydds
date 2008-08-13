@@ -1,4 +1,4 @@
-//$Id: TinyGIOPM.nc,v 1.2 2008-08-11 19:49:34 pruet Exp $
+//$Id: TinyGIOPM.nc,v 1.3 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -37,9 +37,11 @@ module TinyGIOPM {
 		 interface TinyGIOP;
 	}
 	uses {
-		 interface OERP;
+		 interface L4;
 		 interface SendMsg as SendUART;
 		 interface ReceiveMsg as ReceiveUART;
+		 //FIXME: this should not be loop here..
+		 interface OERP;
 	}
 }
 implementation {
@@ -49,7 +51,7 @@ implementation {
 	command result_t StdControl.init ()
 	{
 		int i;
-		dbg(DBG_USR2, "TinyGIOPM:OERP:init\n");
+		dbg(DBG_USR2, "TinyGIOPM:init\n");
 		for(i = 0; i != MAX_TOPIC_NUM; i++) {
 			subscribed_topic[i] = NOT_AVAILABLE;
 		}
@@ -58,67 +60,30 @@ implementation {
 
 	command result_t StdControl.start ()
 	{
-		dbg(DBG_USR2, "TinyGIOPM:OERP:start\n");
+		dbg(DBG_USR2, "TinyGIOPM:start\n");
 		return SUCCESS;
 	}
 
 	command result_t StdControl.stop ()
 	{
-		dbg(DBG_USR2, "TinyGIOPM:OERP:stop\n");
+		dbg(DBG_USR2, "TinyGIOPM:stop\n");
 		return SUCCESS;
 	}
 
-	uint8_t split(uint8_t *str, char **out, const char sep)
-	{
-		int i;
-		int count = 0;
-		uint8_t nf = 0;
-		char *buf;
-		int len = strlen(str);
-		for(i = 0; i != len; i++) {
-			if(str[i] == sep) count++;
-		}
-		out = (char **)malloc(sizeof(char *) * (count + 1));
-		count = 0;
-		buf = (char *)malloc(sizeof(char) * len);
-		for(i = 0; i != len; i++) {
-			if(str[i] != sep) {
-				buf[count] = str[i];
-				count++;
-			} else {
-				out[nf] = (char *)malloc(sizeof(char) * count + 1);
-				memcpy(out[nf], buf, count);
-				out[nf][count] = 0;
-				nf++;
-				count = 0;
-			}
-		}
-		if(count != 0) {
-			out[nf] = (char *)malloc(sizeof(char) * count + 1);
-			memcpy(out[nf], buf, count);
-			out[nf][count] = 0;
-			nf++;
-		}
-		return nf;
-	}
-	int szLen( int8_t* data, int maxlen )
-	{
-		int i;
-		for( i=0; i<maxlen; i++ )
-		{
-			if( data[i] == 0 )
-				return i;
-		}
-		return maxlen;
-	}
 
 	void sendUART(Data data)
 	{
 		char msg[32];
-		sprintf(msg, "d,%u,%u,%u,", TINYGIOP_REPLY, data.size, data.orig);
+		char buf[10];
+		strcpy(msg, "d,");
+		strcat(msg, itoa(TINYGIOP_REPLY, buf, 10));
+		strcat(msg, ",");
+		strcat(msg, itoa(data.size, buf, 10));
+		strcat(msg, ",");
+		strcat(msg, itoa(data.orig, buf, 10));
+		strcat(msg, ",");
+
 		memcpy(msg + strlen(msg), data.item, data.size);
-		//msg = (uint8_t *)m_msg.data;
-		//sprintf(msg, "d,%d,%d,%d", TINYGIOP_REPLY, data.size, data.orig);
 		dbg(DBG_USR2, "TinyGIOPM:sendUART:msg %s\n", msg);
 		msg[31] = 0;
 		memcpy(m_msg.data, msg, 32);
@@ -146,7 +111,7 @@ implementation {
 			topic[strlen(msg->data) - 2] = 0;
 			nf = hash(topic);
 			subscribed_topic[nf] = 1;
-			dbg(DBG_USR2, "TinyGIOPM:OERP:subscribe %d\n", nf);
+			dbg(DBG_USR2, "TinyGIOPM:subscribe %d\n", nf);
 			call OERP.subscribe(nf);
 		} else if (msg->data[0] == 'u') { //unsubscribe
 		} else {
@@ -158,23 +123,29 @@ implementation {
 
 	command ReturnCode_t TinyGIOP.send (Topic_t topic, Data data)
 	{
-		dbg(DBG_USR2, "TinyGIOPM:OERP:send\n");
-		return call OERP.send(topic, data);
+		dbg(DBG_USR2, "TinyGIOPM:send\n");
+		return call L4.send(topic, data);
 	}
 
-	event ReturnCode_t OERP.data_available (uint16_t src, Data data)
+	event ReturnCode_t L4.receive (uint16_t src, Data data)
 	{
-		dbg(DBG_USR2, "TinyGIOPM:OERP:receive from=%d orig=%d subject=%d\n", src, data.orig, data.subject);
-		if(TOS_LOCAL_ADDRESS == 0) {
+		dbg(DBG_USR2, "TinyGIOPM:receive from=%d orig=%d subject=%d\n", src, data.orig, data.subject);
+		if(TOS_LOCAL_ADDRESS == 0 && data.subject == SUBJECT_DATA) {
 			sendUART(data);
 		}
-		return signal TinyGIOP.data_available(data.topic, data);	
+		return signal TinyGIOP.receive(src, data);	
 	}
-
-	command ReturnCode_t TinyGIOP.subscribe (Topic_t topic)
+	event ReturnCode_t L4.sendDone (Data data, bool success)
 	{
-		dbg(DBG_USR2, "TinyGIOPM:OERP:subscribe %d\n", topic);
-		return call OERP.subscribe(topic);
+		//TODO: we should do something here
+		return SUCCESS;
 	}
+	event ReturnCode_t OERP.data_available (Topic_t topic, Data data)
+	{
+		//TODO: we should not do anything here
+		return SUCCESS;
+	}
+	
+
 
 }

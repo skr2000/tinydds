@@ -1,4 +1,4 @@
-//$Id: PublisherM.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
+//$Id: PublisherM.nc,v 1.5 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -38,7 +38,7 @@ module PublisherM {
 		interface Publisher;
 	}
 	uses {
-		interface TinyGIOP;
+		interface OERP;
 		interface DataWriter;
 	}
 }
@@ -171,11 +171,11 @@ implementation {
 
 	event ReturnCode_t DataWriter.data_available (DataWriter_t a_data_writer, Data data)  
 	{
-		return call TinyGIOP.send(call DataWriter.get_topic(a_data_writer), data);
+		return call OERP.send(call DataWriter.get_topic(a_data_writer), data);
 	}
 	
 	
-	event ReturnCode_t TinyGIOP.data_available (Topic_t topic, Data data)
+	event ReturnCode_t OERP.data_available (Topic_t topic, Data data)
 	{
 		return NOT_IMPLEMENTED_YET;
 	}

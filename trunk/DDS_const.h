@@ -1,4 +1,4 @@
-// $Id: DDS_const.h,v 1.3 2008-08-11 19:49:34 pruet Exp $
+// $Id: DDS_const.h,v 1.4 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -203,21 +203,8 @@ const QosPolicyId_t TRANSPORTPRIORITY_QOS_POLICY_ID = 20;
 
 const QosPolicyId_t LIFESPAN_QOS_POLICY_ID = 21;
 
-#define DEBUG_EDGE
 #define NIL (255)
-#define MAX_MEMBER_SIZE 10
-#define MAX_NEIGHBOR 10
-// number of topic should be prime!!!
-#define MAX_TOPIC_NUM 61
-#define MAX_DATA_LEN 8
-#define MAX_BUFFER_SIZE 10
 #define NOT_IMPLEMENTED_YET (MAX_MEMBER_SIZE + 1)
 #define NOT_AVAILABLE (MAX_MEMBER_SIZE + 2)
-#define SUBJECT_SUBSCRIBE 1
-#define SUBJECT_PUBLISH 2
-#define SUBJECT_DATA 3
-#define SUBJECT_BASE_PHEROMONE_FLOOD 4
-#define SUBJECT_BASE_PHEROMONE 5
-#define BISNET_HEADER_SIZE 9
 
 #endif

@@ -1,4 +1,4 @@
-//$Id: Apps_utils.h,v 1.8 2008-08-11 19:49:34 pruet Exp $
+//$Id: Apps_utils.h,v 1.9 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -31,6 +31,22 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef APPS_UTILS_H
 #define APPS_UTILS_H
+
+#define DEBUG_EDGE
+#define MAX_MEMBER_SIZE 10
+#define MAX_NEIGHBOR 10
+// number of topic should be prime!!!
+// for DHT, it should be less than # of node!!!!!!
+#define MAX_TOPIC_NUM 61
+#define MAX_DATA_LEN 8
+#define MAX_BUFFER_SIZE 10
+#define SUBJECT_SUBSCRIBE 1
+#define SUBJECT_PUBLISH 2
+#define SUBJECT_DATA 3
+#define SUBJECT_BASE_PHEROMONE_FLOOD 4
+#define SUBJECT_BASE_PHEROMONE 5
+#define BISNET_HEADER_SIZE 9
+
 typedef struct {
 	cdr_char data1;
 	cdr_char data2;

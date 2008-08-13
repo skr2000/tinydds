@@ -1,4 +1,4 @@
-//$Id: DDS.nc,v 1.8 2008-08-11 19:49:34 pruet Exp $
+//$Id: DDS.nc,v 1.9 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -39,19 +39,21 @@ includes BaseUART;
 includes WSN;
 includes TinyCDR;
 includes TinyGIOP;
+includes Apps_utils;
 //Configuration block
 configuration DDS {
 }
 
 //Implementation block
 implementation {
-	components LedsC, TimerC, NeighborList, LogicalTime, SpanningTreeM, Main, GenericComm, ApplicationM, TinyGIOPM, L4ALM, OneHopM, PublisherM, DomainParticipantM, SubscriberListenerM, SubscriberM, TypeSupportM, EntityM, TopicM, DataReaderM, DataWriterM, ContentFilteredTopicM, UARTComm;
+	components LedsC, TimerC, NeighborList, LogicalTime, SpanningTreeM, Main, GenericComm, UARTComm, ApplicationM, TinyGIOPM, L4ALM, OneHopM, PublisherM, DomainParticipantM, SubscriberListenerM, SubscriberM, TypeSupportM, EntityM, TopicM, DataReaderM, DataWriterM, ContentFilteredTopicM;
 
 	Main.StdControl -> TimerC;
 	Main.StdControl -> NeighborList;
 	Main.StdControl -> LogicalTime;
 	Main.StdControl -> SpanningTreeM;
 	Main.StdControl -> GenericComm;
+	Main.StdControl -> UARTComm;
 	Main.StdControl -> ApplicationM;
 	Main.StdControl -> TinyGIOPM;
 	Main.StdControl -> L4ALM;
@@ -66,17 +68,13 @@ implementation {
 	Main.StdControl -> DataReaderM;
 	Main.StdControl -> DataWriterM;
 	Main.StdControl -> ContentFilteredTopicM;
-	Main.StdControl -> UARTComm;
 	ApplicationM.Leds -> LedsC;
-	ApplicationM.Timer -> TimerC.Timer[unique("Timer")];;
+	ApplicationM.Timer -> TimerC.Timer[unique("Timer")];
 	ApplicationM.Time -> LogicalTime;
 	ApplicationM.DomainParticipant -> DomainParticipantM;
-	ApplicationM.DataWriter -> DataWriterM;
-	ApplicationM.DataReader -> DataReaderM;
-	ApplicationM.Publisher -> PublisherM;
-	ApplicationM.Subscriber -> SubscriberM;
-	ApplicationM.SubscriberListener -> SubscriberListenerM;
 	ApplicationM.Topic -> TopicM;
+	ApplicationM.DataWriter -> DataWriterM;
+	ApplicationM.Publisher -> PublisherM;
 	DataWriterM.Publisher -> PublisherM;
 	DataWriterM.Time -> LogicalTime;
 	SubscriberListenerM.DataReader -> DataReaderM;
@@ -84,14 +82,14 @@ implementation {
 	SubscriberM.SubscriberListener -> SubscriberListenerM;
 	PublisherM.DataWriter -> DataWriterM;
 	DomainParticipantM.Topic -> TopicM;
-	PublisherM.TinyGIOP -> TinyGIOPM;
-	SubscriberM.TinyGIOP -> TinyGIOPM;
-	TinyGIOPM.OERP -> SpanningTreeM;
+	PublisherM.OERP -> SpanningTreeM;
+	SubscriberM.OERP -> SpanningTreeM;
+	SpanningTreeM.TinyGIOP -> TinyGIOPM;
+	SpanningTreeM.Timer -> TimerC.Timer[unique("Timer")];
 	TinyGIOPM.SendUART -> UARTComm.SendMsg[AM_BASEUARTMSG];
 	TinyGIOPM.ReceiveUART -> UARTComm.ReceiveMsg[AM_BASEUARTMSG];
-
-	SpanningTreeM.Timer -> TimerC.Timer[unique("Timer")];;
-	SpanningTreeM.L4 -> L4ALM;
+	TinyGIOPM.L4 -> L4ALM;
+	TinyGIOPM.OERP -> SpanningTreeM;
 	L4ALM.L3 -> OneHopM;
 	OneHopM.SendMsg -> GenericComm.SendMsg[0];
 	OneHopM.ReceiveMsg -> GenericComm.ReceiveMsg[0];

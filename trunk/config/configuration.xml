@@ -22,7 +22,7 @@
 
         <connections>
             <connection from="ApplicationM.Leds" to="LedsC" />
-            <connection from="ApplicationM.Timer" to='TimerC.Timer[unique("Timer")];' />
+            <connection from="ApplicationM.Timer" to='TimerC.Timer[unique("Timer")]' />
             <connection from="ApplicationM.Time" to="LogicalTime" />
             <!-- <connection from="ApplicationM.DataAggregation" to="DDS_DataAggregationM" /> -->
         </connections>
@@ -34,8 +34,10 @@
             <header name="WSN" />
 			<header name="TinyCDR" />
 			<header name="TinyGIOP" />
+			<header name="Apps_utils" />
             <component name="Main" stdctrl="true" /> 
             <component name="GenericComm" stdctrl="true" />
+            <component name="UARTComm" stdctrl="true" />
             <component name="ApplicationM" interface="Application" stdctrl="true" />
 			<component name="TinyGIOPM" interface="TinyGIOP" stdctrl="true" />
             <component name="OERP" interface="OERP" stdctrl="true" />
@@ -59,12 +61,14 @@
         <!-- Application Layer -->
             <!-- ApplicationM -->
             <connection from="ApplicationM.DomainParticipant" to="DomainParticipantM" />
-            <connection from="ApplicationM.DataWriter" to="DataWriterM" />
-            <connection from="ApplicationM.DataReader" to="DataReaderM" />
-            <connection from="ApplicationM.Publisher" to="PublisherM" />
-            <connection from="ApplicationM.Subscriber" to="SubscriberM" />
-            <connection from="ApplicationM.SubscriberListener" to="SubscriberListenerM" />
             <connection from="ApplicationM.Topic" to="TopicM" />
+            <connection from="ApplicationM.DataWriter" to="DataWriterM" />
+            <connection from="ApplicationM.Publisher" to="PublisherM" />
+            <!-- // Uncomment these lines to allows application to subscribe to topic
+            <connection from="ApplicationM.Subscriber" to="SubscriberM" />
+			<connection from="ApplicationM.DataReader" to="DataReaderM" />
+            <connection from="ApplicationM.SubscriberListener" to="SubscriberListenerM" />
+			-->
             <!-- <connection from="ApplicationM.ContentFilteredTopic" to="ContentFilteredTopic" /> -->
             <!-- <connection from="ApplicationM.QosPolicy" to="QosPolicyM" /> -->
         <!-- DDS Interfaces Layer -->
@@ -92,15 +96,18 @@
             <connection from="DomainParticipantM.Topic" to="TopicM" />
         <!-- DDS Interfaces Layer to GIOP layer -->
             <!-- PublisherM -->
-            <connection from="PublisherM.TinyGIOP" to="TinyGIOPM" />
+            <connection from="PublisherM.OERP" to="OERP" />
             <!-- SubscriberM -->
-            <connection from="SubscriberM.TinyGIOP" to="TinyGIOPM" />
-		<!-- GIOP layer to OERP layer -->
-            <connection from="TinyGIOPM.OERP" to="OERP" />
+            <connection from="SubscriberM.OERP" to="OERP" />
         <!-- OERP layer to L4AL layer -->
             <!-- OERP -->
-            <connection from="OERP.Timer" to='TimerC.Timer[unique("Timer")];' />
-            <connection from="OERP.L4" to="L4ALM" />
+            <connection from="OERP.TinyGIOP" to="TinyGIOPM" />
+            <connection from="OERP.Timer" to='TimerC.Timer[unique("Timer")]' />
+		<!-- GIOP layer to OERP layer -->
+			<connection from="TinyGIOPM.SendUART" to="UARTComm.SendMsg[AM_BASEUARTMSG]" />
+			<connection from="TinyGIOPM.ReceiveUART" to="UARTComm.ReceiveMsg[AM_BASEUARTMSG]" />
+			<connection from="TinyGIOPM.L4" to="L4ALM" />
+			<connection from="TinyGIOPM.OERP" to="OERP" />
         <!-- L4AL layer -->
             <connection from="L4ALM.EventQueue" to="PerEventM" />
             <connection from="L4ALM.EventQueue" to="PerTopicM" />
