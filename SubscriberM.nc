@@ -1,4 +1,4 @@
-//$Id: SubscriberM.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
+//$Id: SubscriberM.nc,v 1.5 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -38,7 +38,7 @@ module SubscriberM {
 		interface Subscriber;
 	}
 	uses {
-		interface TinyGIOP;
+		interface OERP;
 		interface DataReader;
 		interface SubscriberListener;
 	}
@@ -82,7 +82,7 @@ implementation {
 		r = call DataReader.create(a_topic);
 		if(r == NOT_AVAILABLE) r = a_topic;
 		data_reader_listener[a_topic] = a_listener;
-		call TinyGIOP.subscribe(a_topic);
+		call OERP.subscribe(a_topic);
 		return r;
 	}
 
@@ -169,7 +169,7 @@ implementation {
 		dbg(DBG_USR2,"SubscriberM:get_default_datareader_qos\n");
 	}
 	
-	event ReturnCode_t TinyGIOP.data_available (Topic_t topic, Data data)
+	event ReturnCode_t OERP.data_available (Topic_t topic, Data data)
 	{
 		//FIXME: I'm not sure about this, we suppose to pass Subscriber_t, but because
 		//of limitation in TinyOS, we might need to pass Topic_t instead

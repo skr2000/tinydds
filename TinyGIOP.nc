@@ -1,4 +1,4 @@
-//$Id: TinyGIOP.nc,v 1.2 2008-08-11 19:49:34 pruet Exp $
+//$Id: TinyGIOP.nc,v 1.3 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -32,6 +32,5 @@ POSSIBILITY OF SUCH DAMAGE.
 //This file is generated from IDL/Configuration. Do not edit manually
 interface TinyGIOP {
 	command ReturnCode_t send (Topic_t topic, Data data);
-	command ReturnCode_t subscribe (Topic_t topic);
-	event ReturnCode_t data_available (Topic_t topic, Data data);
+	event ReturnCode_t receive (uint16_t src, Data data);
 }

@@ -11,6 +11,7 @@ OERP plugins:
 * DHT
 * BiSNET [2]
 * Flood
+* SpanningTree
 
 L3 plugins:
 * AODV based on TinyAODV
@@ -24,6 +25,8 @@ nesc.py is a plugin for OmniIDL for generating TinyDDS skeleton file from DDS' i
 
 Known bugs/limitations:
 
+TODO:
+* Refactor and standardize each layer
 
 Reference:
 [1] P. Boonma and J. Suzuki, "Middleware Support for Pluggable Non-functional Properties in Wireless Sensor Networks," In Proc. of IEEE Workshop on Methodologies for Non-functional Properties in Services Computing, Honolulu, HI, July 2008.

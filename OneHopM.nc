@@ -1,4 +1,4 @@
-//$Id: OneHopM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
+//$Id: OneHopM.nc,v 1.6 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -116,7 +116,6 @@ module OneHopM {
 		data_msg_ptr = (Data_Msg_Ptr) msg->data;
 		retry = currentRetry;
 		dbg(DBG_USR3,"OneHopM:sendData:subject %d\n", data.subject);
-		//data_msg_ptr = call Send.getBuffer(msg, &len);
 		data_msg_ptr->src = TOS_LOCAL_ADDRESS;
 		data_msg_ptr->orig = data.orig;
 		data_msg_ptr->sec = data.timestamp.sec;
@@ -128,16 +127,13 @@ module OneHopM {
 		len = sizeof(Data_Msg) + MAX_DATA_LEN;
 		dbg(DBG_USR3, "OneHopM:sendData:send to %d len %d\n", dest, len);
 		if (call SendMsg.send(dest, (uint16_t) len, msg) != SUCCESS) {
-		//if (call SendMsg.send(TOS_BCAST_ADDR, (uint16_t) len, msg) != SUCCESS) {
 			dbg(DBG_USR3, "OneHopM:send: Send failed for new packet\n");
-			// This is a hack here
 			currentRetry--;
 			currentData.item[7]++;
 			if(currentRetry > 0 && currentRetry != NIL) {
 				dbg(DBG_USR3,"OneHopM:send:retry %d\n", currentRetry);
 				post sendData();
 			} else {
-				//spread alert pheromone
 				signal L3.sendDone(data, FALSE);
 				currentRetry = NIL;
 			}

@@ -1,4 +1,4 @@
-//$Id: TopicM.nc,v 1.6 2008-08-11 19:49:34 pruet Exp $
+//$Id: TopicM.nc,v 1.7 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -80,7 +80,6 @@ implementation {
 	{
 		int i;
 		uint32_t h;
-		//uint32_t g;
 	
 		h = hash(topic_name);
 		dbg(DBG_USR2, "TopicM:create:topic=%d\n", h);

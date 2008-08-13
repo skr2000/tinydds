@@ -1,4 +1,4 @@
-//$Id: DataReaderM.nc,v 1.4 2008-08-11 19:49:34 pruet Exp $
+//$Id: DataReaderM.nc,v 1.5 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -49,21 +49,20 @@ implementation {
 	int8_t	buffer_pointer_stop[MAX_MEMBER_SIZE];
 	command result_t StdControl.init ()
 	{
-		int i;
 		dbg(DBG_USR2,"DataReaderM:init\n");
 		enabled = RETCODE_NOT_ENABLED;
-		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
-			data_reader[i] = NOT_AVAILABLE;
-			//FIXME: Might need to be moved to stdcontrol.start
-			buffer_pointer_start[i] = buffer_pointer_stop[i] = 0;
-		}
 		return SUCCESS;
 	}
 
 	command result_t StdControl.start ()
 	{
+		int i;
 		dbg(DBG_USR2,"DataReaderM:start\n");
 		enabled = RETCODE_OK;
+		for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+			data_reader[i] = NOT_AVAILABLE;
+			buffer_pointer_start[i] = buffer_pointer_stop[i] = 0;
+		}
 		return SUCCESS;
 	}
 

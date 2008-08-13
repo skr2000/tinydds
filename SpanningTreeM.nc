@@ -1,4 +1,4 @@
-//$Id: SpanningTreeM.nc,v 1.5 2008-08-11 19:49:34 pruet Exp $
+//$Id: SpanningTreeM.nc,v 1.6 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -36,7 +36,7 @@ module SpanningTreeM {
 		 interface OERP;
 	}
 	uses {
-		 interface L4;
+		 interface TinyGIOP;
 		 interface Timer;
 	}
 }
@@ -80,7 +80,10 @@ implementation {
 
 	task void forwardWeight()
 	{
-		call L4.send(TOS_BCAST_ADDR, weight_data);
+		#ifdef PLATFORM_MICA2
+		int TOS_BCAST_ADDR=0xffff;
+		#endif
+		call TinyGIOP.send(TOS_BCAST_ADDR, weight_data);
 	}
 
 	command ReturnCode_t OERP.send (Topic_t topic, Data data)
@@ -91,16 +94,16 @@ implementation {
 			return FAIL;
 		}
 		dbg(DBG_USR3, "SpanningTreeM:OERP:send to %d\n", my_parent);
-		return call L4.send(my_parent, data);
+		return call TinyGIOP.send(my_parent, data);
 	}
 	
-	event ReturnCode_t L4.receive (uint16_t src, Data data)
+	event ReturnCode_t TinyGIOP.receive (uint16_t src, Data data)
 	{
 		dbg(DBG_USR3, "SpanningTreeM:OERP:receive from=%d orig=%d subject=%d\n", src, data.orig, data.subject);
 		if(data.subject == SUBJECT_DATA) {
 			if(TOS_LOCAL_ADDRESS != 0) {
 				dbg(DBG_USR3, "SpanningTreeM:OERP:receive data forward=%d\n", my_parent);
-				return call L4.send(my_parent, data);
+				return call TinyGIOP.send(my_parent, data);
 			}
 		} else if(data.subject == SUBJECT_SUBSCRIBE) {
 			dbg(DBG_USR3, "SpanningTreeM:OERP:receive weight incoming=%ld current=%ld\n", data.size, my_weight);
@@ -122,7 +125,7 @@ implementation {
 			dbg(DBG_USR3, "SpanningTreeM:OERP:receive drop\n");
 			return SUCCESS;
 		}
-		return signal OERP.data_available(src, data);	
+		return signal OERP.data_available(data.topic, data);	
 	}
 
 	
@@ -153,11 +156,6 @@ implementation {
 	event result_t Timer.fired()
 	{
 		post sendSubscription();
-		return SUCCESS;
-	}
-
-	event ReturnCode_t L4.sendDone (Data data, bool success)
-	{
 		return SUCCESS;
 	}
 }

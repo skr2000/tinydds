@@ -1,4 +1,4 @@
-// $Id: DDS_type.h,v 1.4 2008-08-11 19:49:34 pruet Exp $
+// $Id: DDS_type.h,v 1.5 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -74,7 +74,7 @@ typedef uint32_t InstanceHandle_t;
 typedef uint32_t BuiltinTopicKey_t[3];
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	InstanceHandle_t* _buffer;
 } InstanceHandleSeq;
 
@@ -88,7 +88,7 @@ ReturnCode_t rccombine (ReturnCode_t e1, ReturnCode_t e2)
 typedef uint32_t QosPolicyId_t;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	char ** _buffer;
 } StringSeq;
 
@@ -97,29 +97,29 @@ typedef uint32_t StatusKind;
 typedef uint32_t StatusKindMask;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	struct QosPolicyCount* _buffer;
 } QosPolicyCountSeq;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	Topic_t* _buffer;
 } TopicSeq;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	DataReader_t* _buffer;
 } DataReaderSeq;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	Condition_t* _buffer;
 } ConditionSeq;
 
 typedef uint32_t SampleStateKind;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	SampleStateKind* _buffer;
 } SampleStateSeq;
 
@@ -128,7 +128,7 @@ typedef uint32_t SampleStateMask;
 typedef uint32_t ViewStateKind;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	ViewStateKind* _buffer;
 } ViewStateSeq;
 
@@ -137,14 +137,14 @@ typedef uint32_t ViewStateMask;
 typedef uint32_t InstanceStateKind;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	InstanceStateKind* _buffer;
 } InstanceStateSeq;
 
 typedef uint32_t InstanceStateMask;
 
 typedef struct {
-	uint _length;
+	uint16_t _length;
 	struct SampleInfo* _buffer;
 } SampleInfoSeq;
 

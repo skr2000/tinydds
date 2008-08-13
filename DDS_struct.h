@@ -1,4 +1,4 @@
-// $Id: DDS_struct.h,v 1.3 2008-08-11 19:49:34 pruet Exp $
+// $Id: DDS_struct.h,v 1.4 2008-08-13 05:35:27 pruet Exp $
 
 /*Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -115,21 +115,21 @@ typedef struct {
 
 typedef struct {
 	struct {
-		uint _length;
+		uint16_t _length;
 		uint8_t* _buffer;
 	} value;
 } UserDataQosPolicy;
 
 typedef struct {
 	struct {
-		uint _length;
+		uint16_t _length;
 		uint8_t* _buffer;
 	} value;
 } TopicDataQosPolicy;
 
 typedef struct {
 	struct {
-		uint _length;
+		uint16_t _length;
 		uint8_t* _buffer;
 	} value;
 } GroupDataQosPolicy;
@@ -365,7 +365,7 @@ typedef struct {
 } Data;
 
 typedef struct {
-  uint _length;
+  uint16_t _length;
   Data* _buffer;
 } DataSeq;
 typedef DataSeq * DataSeq_p;
