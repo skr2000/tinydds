@@ -1,5 +1,5 @@
-/*$Id: SpanningTree.java,v 1.2 2008/08/26 19:35:07 pruet Exp $
- 
+/*$Id: SpanningTree.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
  */
-
 package edu.umb.cs.tinydds.OERP;
 
 import com.sun.spot.sensorboard.peripheral.LEDColor;
@@ -38,8 +37,8 @@ import edu.umb.cs.tinydds.L3.L3;
 import edu.umb.cs.tinydds.Message;
 import edu.umb.cs.tinydds.MessagePayload;
 import edu.umb.cs.tinydds.MessagePayloadBytes;
+import edu.umb.cs.tinydds.io.LED;
 import edu.umb.cs.tinydds.tinygiop.TinyGIOPObserver;
-import edu.umb.cs.tinydds.io.LEDEmulator;
 import edu.umb.cs.tinydds.utils.Logger;
 import edu.umb.cs.tinydds.utils.Observable;
 import java.util.Hashtable;
@@ -54,12 +53,12 @@ public class SpanningTree extends OERP implements TinyGIOPObserver, Runnable {
     Logger logger;
     Hashtable topicWeight;
     Hashtable parent;
-    LEDEmulator leds;
+    LED leds;
     Vector subscribedTopic;
 
     public SpanningTree() {
         super();
-        leds = new LEDEmulator();
+        leds = new LED();
         leds.setColor(0, LEDColor.RED);
         leds.setColor(1, LEDColor.RED);
         leds.setColor(2, LEDColor.RED);
@@ -122,7 +121,7 @@ public class SpanningTree extends OERP implements TinyGIOPObserver, Runnable {
             return tinygiop.send(msg);
         } else if (msg.getSubject() == Message.SUBJECT_DATA) {
             // msg.setReceiver(AddressFiltering.longToAddress((Long)parent.get(msg.getTopic()))); 
-            if(parent.get(msg.getTopic()) != null) {
+            if (parent.get(msg.getTopic()) != null) {
                 msg.setReceiver(((Long) parent.get(msg.getTopic())).longValue());
                 return tinygiop.send(msg);
             }
@@ -146,7 +145,7 @@ public class SpanningTree extends OERP implements TinyGIOPObserver, Runnable {
         msg.setSubject(Message.SUBJECT_SUBSCRIBE);
         msg.setTopic(topic);
         msg.setReceiver(L3.BROADCAST_ADDRESS);
-        msg.setOriginator(DDS.getMyAddress());
+        msg.setOriginator(L3.getAddress());
         send(msg);
         return DDS.SUCCESS;
     }

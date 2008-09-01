@@ -1,5 +1,5 @@
-/*$Id: Application.java,v 1.1 2008/08/26 19:35:08 pruet Exp $
- 
+/*$Id: Application.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
  */
-
 package edu.umb.cs.tinydds;
 
 import com.sun.spot.util.Utils;
@@ -37,14 +36,11 @@ import edu.umb.cs.tinydds.DDSimpl.DataReaderListenerImpl;
 import edu.umb.cs.tinydds.DDSimpl.DomainParticipantImpl;
 import edu.umb.cs.tinydds.L3.AddressFiltering;
 import edu.umb.cs.tinydds.io.LED;
-import edu.umb.cs.tinydds.io.LEDEmulator;
 import edu.umb.cs.tinydds.io.LightSensor;
-import edu.umb.cs.tinydds.io.LightSensorEmulator;
-import edu.umb.cs.tinydds.io.Switch;
 import edu.umb.cs.tinydds.utils.Logger;
 import edu.umb.cs.tinydds.utils.Observable;
 import edu.umb.cs.tinydds.utils.Observer;
-import edu.umb.cs.tinydds.io.SwitchEmulator;
+import edu.umb.cs.tinydds.io.Switch;
 import edu.umb.cs.tinydds.io.SwitchStatus;
 import java.io.IOException;
 import org.omg.dds.DataReader;
@@ -58,6 +54,10 @@ import org.omg.dds.Subscriber;
  *
  * @author pruet
  */
+
+/* Testing application, press left hardware button for subscrbing,
+ * right hardware button for publishing 
+ */
 public class Application implements Observer {
 
     protected DomainParticipant domainParticipant = null;
@@ -65,20 +65,19 @@ public class Application implements Observer {
     protected DataWriter dataWriter = null;
     protected Switch switchs = null;
     protected Logger logger = null;
-    
     protected Subscriber subscriber = null;
     protected DataReader dataReader = null;
     protected DataReaderListener dataReaderListener = null;
-    protected LED leds;
-    protected LightSensor lightSensor;
+    protected LED leds = null;
+    protected LightSensor lightSensor = null;
 
     public Application() {
         // Misc initialization
         logger = new Logger("Application");
-        switchs = new SwitchEmulator();
-        ((Observable)switchs).addObserver(this);
-        leds = new LEDEmulator();
-        lightSensor = new LightSensorEmulator();
+        switchs = new Switch();
+        ((Observable) switchs).addObserver(this);
+        leds = new LED();
+        lightSensor = new LightSensor();
 
         // Create publisher
         domainParticipant = new DomainParticipantImpl();
@@ -103,15 +102,16 @@ public class Application implements Observer {
                 }
                 MessagePayloadBytes payload = new MessagePayloadBytes(data);
                 dataWriter.write(payload);
-            } else if (status.getChanged() == 0) { // subscribe
+            } else if (status.getChanged() == 0) {
                 // Create subscriber
+                // FIXME: Some flag should be put here, we need to publish only once
                 logger.logInfo("subscribe");
                 subscriber = domainParticipant.create_subscriber(null);
                 dataReaderListener = new DataReaderListenerImpl();
                 dataReader = subscriber.create_datareader("TempSensor", dataReaderListener);
                 ((DataReaderImpl) dataReader).addObserver(this);
             }
-        } else if(obj.equals(dataReader)) {
+        } else if (obj.equals(dataReader)) {
             // data from DataReader
             Message msg = (Message) arg;
             MessagePayloadBytes payload = (MessagePayloadBytes) msg.getPayload();

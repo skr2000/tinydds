@@ -1,5 +1,5 @@
-/*$Id: LED.java,v 1.1 2008/08/26 19:35:08 pruet Exp $
- 
+/*$Id: LED.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -31,32 +31,92 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package edu.umb.cs.tinydds.io;
 
+import com.sun.spot.sensorboard.EDemoBoard;
+import com.sun.spot.sensorboard.peripheral.ITriColorLED;
 import com.sun.spot.sensorboard.peripheral.LEDColor;
+import com.sun.spot.sensorboard.peripheral.TriColorLED;
+import edu.umb.cs.tinydds.utils.Logger;
 
 /**
  *
  * @author pruet
  */
-public interface LED {
+public class LED {
 
-    int getBlue(int i);
+    protected static ITriColorLED realLED[] = null;
+    protected static int r[] = null,  g[] = null,  b[] = null;
+    protected static boolean on[] = null;
+    Logger logger;
 
-    LEDColor getColor(int i);
+    public LED() {
+        if (realLED != null) {
+            return;
+        }
+        ITriColorLED[] leds = EDemoBoard.getInstance().getLEDs();
+        realLED = new TriColorLED[leds.length];
+        r = new int[leds.length];
+        g = new int[leds.length];
+        b = new int[leds.length];
+        on = new boolean[leds.length];
+        for (int i = 0; i != leds.length; i++) {
+            realLED[i] = leds[i];
+            r[i] = 0;
+            g[i] = 0;
+            b[i] = 0;
+            on[i] = false;
+        }
 
-    int getGreen(int i);
+    }
 
-    int getRed(int i);
+    public void setRGB(int i, int redRGB, int greenRGB, int blueRGB) {
+        r[i] = redRGB;
+        g[i] = greenRGB;
+        b[i] = blueRGB;
+        setOn(i, on[i]);
+    }
 
-    boolean isOn(int i);
+    public void setColor(int i, LEDColor clr) {
+        r[i] = clr.red();
+        g[i] = clr.green();
+        b[i] = clr.blue();
+        setOn(i, on[i]);
+    }
 
-    void setColor(int i, LEDColor clr);
+    public LEDColor getColor(int i) {
+        return new LEDColor(r[i], g[i], b[i]);
+    }
 
-    void setOff(int i);
+    public int getRed(int i) {
+        return r[i];
+    }
 
-    void setOn(int i);
+    public int getGreen(int i) {
+        return g[i];
+    }
 
-    void setOn(int i, boolean on);
+    public int getBlue(int i) {
+        return b[i];
+    }
 
-    void setRGB(int i, int redRGB, int greenRGB, int blueRGB);
+    public void setOn(int i) {
+        setOn(i, true);
+    }
 
+    public void setOff(int i) {
+        setOn(i, false);
+    }
+
+    public void setOn(int i, boolean on) {
+        LED.on[i] = on;
+        if (LED.on[i]) {
+            realLED[i].setRGB(r[i], g[i], b[i]);
+            realLED[i].setOn();
+        } else {
+            realLED[i].setOff();
+        }
+    }
+
+    public boolean isOn(int i) {
+        return on[i];
+    }
 }

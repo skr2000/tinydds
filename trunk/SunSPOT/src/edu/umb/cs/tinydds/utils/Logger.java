@@ -1,5 +1,5 @@
-/*$Id: Logger.java,v 1.2 2008/08/26 19:35:07 pruet Exp $
- 
+/*$Id: Logger.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package edu.umb.cs.tinydds.utils;
 
-import edu.umb.cs.tinydds.io.LEDEmulator;
 import com.sun.spot.sensorboard.peripheral.LEDColor;
+import edu.umb.cs.tinydds.io.LED;
 
 /**
  *
@@ -47,7 +47,9 @@ public class Logger {
     public static final String[] LOG_MSG = {"Unset", "Info", "Warning", "Error"};
     protected static int logLevel = NONE;
     protected String owner;
-    protected LEDEmulator led;
+    protected LED led;
+    protected boolean sled;
+    protected static int STATUS_LED = 7;
 
     public Logger() {
         this("");
@@ -58,7 +60,12 @@ public class Logger {
         if (getLogLevel() == NONE) {
             setLogLevel(ERROR);
         }
-        led = new LEDEmulator();
+        sled = true;
+    }
+
+    public Logger(String owner, boolean sled) {
+        this(owner);
+        sled = false;
     }
 
     public int getLogLevel() {
@@ -74,6 +81,15 @@ public class Logger {
         if (level >= getLogLevel()) {
             //TODO: Should we add Date object?
             System.out.println(getOwner() + ":" + LOG_MSG[level] + ":" + msg);
+            if (level == WARNING && sled) {
+                led.setColor(STATUS_LED, LEDColor.YELLOW);
+                led.setOn(STATUS_LED);
+
+            } else if (level == ERROR && sled) {
+                led.setColor(STATUS_LED, LEDColor.RED);
+                led.setOn(STATUS_LED);
+
+            }
         }
     }
 
@@ -83,13 +99,9 @@ public class Logger {
 
     public void logWarning(String msg) {
         log(WARNING, msg);
-        led.setColor(7, LEDColor.YELLOW);
-        led.setOn(7);
     }
 
     public void logError(String msg) {
-        led.setColor(7, LEDColor.RED);
-        led.setOn(7);
         log(ERROR, msg);
     }
 

@@ -1,4 +1,4 @@
-MIDlet-Name: SpanningTree
+MIDlet-Name: TinyDDS
 MIDlet-Version: 1.0.0
 MIDlet-Vendor: Sun Microsystems Inc
 MIDlet-1: DDS, , edu.umb.cs.tinydds.DDS

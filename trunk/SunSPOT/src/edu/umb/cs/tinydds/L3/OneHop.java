@@ -1,5 +1,5 @@
-/*$Id: OneHop.java,v 1.2 2008/08/26 19:35:08 pruet Exp $
- 
+/*$Id: OneHop.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,12 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
  */
-
 package edu.umb.cs.tinydds.L3;
 
 import com.sun.spot.io.j2me.radiogram.Radiogram;
 import com.sun.spot.io.j2me.radiogram.RadiogramConnection;
+import com.sun.spot.peripheral.Spot;
+import com.sun.spot.util.IEEEAddress;
 import edu.umb.cs.tinydds.DDS;
 import edu.umb.cs.tinydds.Message;
 import edu.umb.cs.tinydds.MessagePayloadBytes;
@@ -46,18 +47,19 @@ import javax.microedition.io.Connector;
  */
 public class OneHop extends L3 implements Runnable {
 
-    private boolean open = false;
     // TODO: move to some configuration file
-    private static int PORT = 23;
     AddressFiltering addressFiltering;
     Logger logger;
+    boolean flag;
 
     public OneHop() {
+        myAddress = AddressFiltering.addressToLong(IEEEAddress.toDottedHex(Spot.getInstance().getRadioPolicyManager().getIEEEAddress()));
         logger = new Logger("OneHop");
         logger.logInfo("initiated:");
-        logger.logInfo("initiated:my address is " + DDS.getMyAddress());
-        addressFiltering = new AddressFiltering(DDS.getMyAddress());
+        logger.logInfo("initiated:my address is " + L3.getAddress());
+        addressFiltering = new AddressFiltering(L3.getAddress());
         logger.logInfo("initiated:start receiver thread");
+        flag = false;
         new Thread(this).start();
     }
 
@@ -65,16 +67,22 @@ public class OneHop extends L3 implements Runnable {
         RadiogramConnection rgc_tx = null;
         Radiogram dg = null;
         String url = null;
-        //logger.logInfo("send:send message:to:" + msg.getReceiver());
+        //TODO: Test this flag, but theoretically, it should work well
+        if (flag) {
+            return DDS.FAIL;
+        }
+        flag = true;
         if (msg.getReceiver() != L3.BROADCAST_ADDRESS) {
             url = "radiogram://" + AddressFiltering.longToAddress(msg.getReceiver()) + ":123";
         } else {
             url = "radiogram://broadcast:123";
         }
-        logger.logInfo("send:send message:to:" + url);
+        logger.logInfo("send:to:" + url);
+        logger.logInfo("sned:subject:" + msg.getSubject());
+        logger.logInfo("send:topic:" + msg.getTopic());
         try {
             rgc_tx = (RadiogramConnection) Connector.open(url);
-            dg = (Radiogram)rgc_tx.newDatagram(rgc_tx.getMaximumLength());
+            dg = (Radiogram) rgc_tx.newDatagram(rgc_tx.getMaximumLength());
         } catch (IOException ex) {
             logger.logError("send:can't open connection");
             ex.printStackTrace();
@@ -82,19 +90,29 @@ public class OneHop extends L3 implements Runnable {
         }
         if (rgc_tx != null) {
             try {
-                msg.setSender(DDS.getMyAddress());
+                msg.setSender(L3.getAddress());
                 dg.reset();
                 int size = msg.marshall().length;
-                if(size > rgc_tx.getMaximumLength()) {
+                if (size > rgc_tx.getMaximumLength()) {
                     logger.logError("send:message to large max=" + rgc_tx.getMaximumLength() + " msg size= " + size);
                     return DDS.FAIL;
                 }
                 dg.write(msg.marshall());
                 rgc_tx.send(dg);
                 rgc_tx.close();
+                flag = false;
             } catch (IOException ex) {
                 logger.logError("send:can't send message");
                 ex.printStackTrace();
+                if (rgc_tx != null) {
+                    try {
+                        rgc_tx.close();
+                        flag = false;
+                    } catch (IOException ex1) {
+                        logger.logError("send:can't close connection");
+                        ex1.printStackTrace();
+                    }
+                }
                 return DDS.FAIL;
             }
             logger.logInfo("send:done");
@@ -110,7 +128,6 @@ public class OneHop extends L3 implements Runnable {
 
         try {
             rgc_rx = (RadiogramConnection) Connector.open("radiogram://:123");
-            // Then, we ask for a datagram with the maximum size allowed
             dg = (Radiogram) rgc_rx.newDatagram(rgc_rx.getMaximumLength());
             logger.logInfo("run:open receiver connection");
         } catch (IOException e) {
@@ -125,15 +142,24 @@ public class OneHop extends L3 implements Runnable {
                 Message mesg = new Message(new MessagePayloadBytes(new byte[b.length]));
                 dg.reset();
                 rgc_rx.receive(dg);
+                b = dg.getData();
+                mesg.demarshall(b);
                 logger.logInfo("run:receive a connection from " + dg.getAddress());
-                //if not from my neighbors, drop it
+                //FIXME: This is a dirty hack, but I can't see how to fix better than this =_==
+                //Gotta find a way to fix the address of base station...
+                if (mesg.getSubject() == Message.SUBJECT_SUBSCRIBE) {
+                    MessagePayloadBytes payload = (MessagePayloadBytes) mesg.getPayload();
+                    byte weight = payload.get()[0];
+                    logger.logInfo("run:check if it's subscription " + weight);
+                    if (weight == 1) { // This guy must be the base station
+                        AddressFiltering.setBaseStation(dg.getAddress());
+                    }
+                }
                 if (!addressFiltering.isMyNeighbor(dg.getAddress())) {
                     logger.logInfo("run:drop by address filtering");
                     continue;
                 }
                 //dg.readFully(b);
-                b = dg.getData();
-                mesg.demarshall(b);
                 logger.logInfo("run:notify observer");
                 this.notifyObservers((Object) mesg);
             } catch (IOException e) {

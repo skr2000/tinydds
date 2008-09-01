@@ -1,5 +1,5 @@
-/*$Id: LightSensor.java,v 1.1 2008/08/26 19:35:08 pruet Exp $
- 
+/*$Id: LightSensor.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,19 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package edu.umb.cs.tinydds.io;
 
+import com.sun.spot.sensorboard.EDemoBoard;
+import com.sun.spot.sensorboard.peripheral.ILightSensor;
 import java.io.IOException;
 
 /**
  *
  * @author pruet
  */
-public interface LightSensor {
+public class LightSensor {
 
-    int getValue() throws IOException;
+    private ILightSensor lightSensor = EDemoBoard.getInstance().getLightSensor();
 
+    public int getValue() throws IOException {
+        return lightSensor.getValue();
+    }
 }

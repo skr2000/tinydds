@@ -1,5 +1,5 @@
-/*$Id: DomainParticipantImpl.java,v 1.1 2008/08/26 19:35:07 pruet Exp $
- 
+/*$Id: DomainParticipantImpl.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,9 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 package edu.umb.cs.tinydds.DDSimpl;
 
+import edu.umb.cs.tinydds.utils.Logger;
 import org.omg.dds.DomainParticipant;
 import org.omg.dds.Publisher;
 import org.omg.dds.PublisherListener;
@@ -46,8 +45,15 @@ public class DomainParticipantImpl implements DomainParticipant {
 
     protected static Publisher publisher = null;
     protected static Subscriber subscriber = null;
+    protected Logger logger;
+
+    public DomainParticipantImpl() {
+        logger = new Logger("DomainParticipantImpl");
+    }
+
     public Publisher create_publisher(PublisherListener a_listener) {
-        if(publisher == null) {
+        logger.logInfo("create_publisher");
+        if (publisher == null) {
             publisher = new PublisherImpl();
         }
         publisher.set_listener(a_listener);
@@ -55,11 +61,11 @@ public class DomainParticipantImpl implements DomainParticipant {
     }
 
     public Subscriber create_subscriber(SubscriberListener a_listener) {
-        if(subscriber == null) {
+        logger.logInfo("create_subscriber");
+        if (subscriber == null) {
             subscriber = new SubscriberImpl();
         }
         subscriber.set_listener(a_listener);
         return subscriber;
     }
-
 }
