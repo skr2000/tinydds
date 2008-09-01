@@ -1,4 +1,4 @@
-/*$Id: TinyGIOPimpl.java,v 1.2 2008/08/26 19:35:08 pruet Exp $
+/*$Id: TinyGIOPimpl.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
  
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -51,10 +51,12 @@ public class TinyGIOPimpl extends TinyGIOP implements L4Observer {
     }
 
     public int send(Message msg) {
+        logger.logInfo("send");
         return l4.send(msg);
     }
 
     public void update(Observable obj, Object arg) {
+        logger.logInfo("update");
         notifyObservers(arg);
     }
 }

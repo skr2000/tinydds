@@ -1,5 +1,5 @@
-/*$Id: Switch.java,v 1.1 2008/08/26 19:35:08 pruet Exp $
- 
+/*$Id: Switch.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package edu.umb.cs.tinydds.io;
 
+import edu.umb.cs.tinydds.utils.*;
+import com.sun.spot.sensorboard.EDemoBoard;
 import com.sun.spot.sensorboard.peripheral.ISwitch;
 import com.sun.spot.sensorboard.peripheral.ISwitchListener;
 
@@ -38,10 +40,27 @@ import com.sun.spot.sensorboard.peripheral.ISwitchListener;
  *
  * @author pruet
  */
-public interface Switch extends ISwitchListener {
+public class Switch extends Observable implements ISwitchListener {
 
-    void switchPressed(ISwitch arg0);
+    protected static ISwitch switches[] = EDemoBoard.getInstance().getSwitches();
 
-    void switchReleased(ISwitch sw);
+    public Switch() {
+        for (int i = 0; i != switches.length; i++) {
+            switches[i].addISwitchListener(this);
+        }
+    }
 
+    public void switchPressed(ISwitch arg0) {
+    }
+
+    public void switchReleased(ISwitch sw) {
+        SwitchStatus status = new SwitchStatus(switches.length);
+        for (int i = 0; i != switches.length; i++) {
+            status.setStatus(i, switches[i].isOpen());
+            if (sw == switches[i]) {
+                status.setChanged(i);
+            }
+        }
+        notifyObservers(status);
+    }
 }

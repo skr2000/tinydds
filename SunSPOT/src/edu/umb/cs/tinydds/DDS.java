@@ -1,4 +1,4 @@
-/*$Id: DDS.java,v 1.2 2008/08/26 19:35:08 pruet Exp $
+/*$Id: DDS.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
  
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -31,21 +31,18 @@ POSSIBILITY OF SUCH DAMAGE.
 
 package edu.umb.cs.tinydds;
 
-import com.sun.spot.peripheral.Spot;
 import com.sun.spot.sensorboard.peripheral.LEDColor;
-import com.sun.spot.util.IEEEAddress;
 import edu.umb.cs.tinydds.DDSimpl.DomainParticipantImpl;
 import edu.umb.cs.tinydds.DDSimpl.SubscriberImpl;
-import edu.umb.cs.tinydds.L3.AddressFiltering;
 import edu.umb.cs.tinydds.L3.L3;
 import edu.umb.cs.tinydds.L3.OneHop;
 import edu.umb.cs.tinydds.L4.L4;
 import edu.umb.cs.tinydds.L4.L4AL;
 import edu.umb.cs.tinydds.OERP.OERP;
 import edu.umb.cs.tinydds.OERP.SpanningTree;
+import edu.umb.cs.tinydds.io.LED;
 import edu.umb.cs.tinydds.tinygiop.TinyGIOP;
 import edu.umb.cs.tinydds.tinygiop.TinyGIOPimpl;
-import edu.umb.cs.tinydds.io.LEDEmulator;
 import edu.umb.cs.tinydds.utils.Logger;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
@@ -60,9 +57,8 @@ public class DDS extends MIDlet {
     public static final int SUCCESS = 0;
     public static final int FAIL = 1;
     protected Logger logger;
-    protected static long myAddress;
     protected long PREFIX = 0;
-    protected LEDEmulator leds;
+    protected LED leds;
     L3 l3;
     L4 l4;
     TinyGIOP tinygiop;
@@ -70,12 +66,10 @@ public class DDS extends MIDlet {
 
     protected void startApp() throws MIDletStateChangeException {
         //misc initialization
-        leds = new LEDEmulator();
+        leds = new LED();
         logger = new Logger("DDS");
         logger.setLogLevel(Logger.INFO);
         logger.logInfo("initiated");
-        myAddress = AddressFiltering.addressToLong(IEEEAddress.toDottedHex(Spot.getInstance().getRadioPolicyManager().getIEEEAddress()));
-        logger.logInfo("my address " + myAddress);
         
         // TinyDDS Stack
         l3 = new OneHop();
@@ -92,7 +86,6 @@ public class DDS extends MIDlet {
         
         //Start application
         new Application();
-        
         //Show LED status
         leds.setColor(7, LEDColor.GREEN);
         leds.setOn(7);
@@ -102,10 +95,6 @@ public class DDS extends MIDlet {
     }
 
     protected void destroyApp(boolean unconditional) throws MIDletStateChangeException {
-    }
-
-    public static long getMyAddress() {
-        return myAddress;
     }
 
 }

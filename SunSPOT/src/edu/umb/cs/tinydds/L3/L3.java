@@ -1,4 +1,4 @@
-/*$Id: L3.java,v 1.2 2008/08/26 19:35:08 pruet Exp $
+/*$Id: L3.java,v 1.3 2008/08/29 20:26:44 pruet Exp $
  
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
@@ -41,6 +41,9 @@ import edu.umb.cs.tinydds.utils.Observable;
 public abstract class L3 extends Observable {
     public static final long NO_ADDRESS = Long.MIN_VALUE;
     public static final long BROADCAST_ADDRESS = Long.MAX_VALUE;
+    public static long myAddress = 0;
     public abstract int send(Message msg);
-
+    public static long getAddress() {
+        return myAddress;
+    }
 }

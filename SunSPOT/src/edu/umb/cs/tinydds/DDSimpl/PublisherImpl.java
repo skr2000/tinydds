@@ -1,5 +1,5 @@
-/*$Id: PublisherImpl.java,v 1.1 2008/08/26 19:35:07 pruet Exp $
- 
+/*$Id: PublisherImpl.java,v 1.2 2008/08/29 20:26:44 pruet Exp $
+
 Copyright (c) 2008 University of Massachusetts, Boston 
 All rights reserved. 
 Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,10 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 package edu.umb.cs.tinydds.DDSimpl;
 
 import edu.umb.cs.tinydds.DDS;
+import edu.umb.cs.tinydds.L3.L3;
 import edu.umb.cs.tinydds.Message;
 import edu.umb.cs.tinydds.MessagePayload;
 import edu.umb.cs.tinydds.OERP.OERP;
@@ -48,22 +47,23 @@ import org.omg.dds.PublisherListener;
  *
  * @author pruet
  */
-public class PublisherImpl extends Observable implements Publisher{
+public class PublisherImpl extends Observable implements Publisher {
 
     Logger logger;
     Hashtable dataWriterTable;
     PublisherListener publisherListener = null;
     static OERP oerp = null;
-    
+
     public PublisherImpl() {
         super();
         logger = new Logger("PublisherImpl");
         logger.logInfo("initiate");
         dataWriterTable = new Hashtable();
     }
+
     public DataWriter create_datawriter(String topic, DataWriterListener a_listener) {
         logger.logInfo("create_datawriter");
-        if(dataWriterTable.get(topic) == null) {
+        if (dataWriterTable.get(topic) == null) {
             DataWriter dataWriter = new DataWriterImpl(this, topic);
             dataWriter.set_listener(a_listener);
 
@@ -82,14 +82,14 @@ public class PublisherImpl extends Observable implements Publisher{
         logger.logInfo("get_listener");
         return publisherListener;
     }
-    
+
     public void publish(DataWriter dataWriter, MessagePayload payload) {
         logger.logInfo("publish:topic " + dataWriter.get_topic());
         Message msg = new Message(payload);
         msg.setSubject(Message.SUBJECT_DATA);
         msg.setTopic(dataWriter.get_topic());
-        msg.setOriginator(DDS.getMyAddress());
-        if(oerp == null) {
+        msg.setOriginator(L3.getAddress());
+        if (oerp == null) {
             logger.logError("publish:OERP is not connected");
         }
         oerp.send(msg);
