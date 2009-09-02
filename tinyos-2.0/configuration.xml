@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<configuration platform="pc" threading="per-event">
+    <application-configuration>
+        <includes>
+            <component name="LedsC" stdctrl="false" />
+            <component name="TimerC" stdctrl="true" />
+            <component name="NeighborsM" stdctrl="true" />
+            <!-- <component name="DDS_DataAggregationM" interface="DataAggregation" stdctrl="true" /> --> 
+            <component name="LogicalTime" stdctrl="true" />
+            <!-- <component name="FloodingM" interface="OERP"/>  -->
+            <component name="BisnetM" interface="OERP"/> 
+        </includes>
+        
+        <implementations>
+            <!-- <implementation component="FloodingM" interface="OERP" /> -->
+            <implementation component="BisnetM" interface="OERP" />
+        </implementations>
+
+        <connections>
+            <connection from="ApplicationM.Leds" to="LedsC" />
+            <connection from="ApplicationM.Timer" to='TimerC.Timer[unique("Timer")];' />
+            <connection from="ApplicationM.Time" to="LogicalTime" />
+            <!-- <connection from="ApplicationM.DataAggregation" to="DDS_DataAggregationM" /> -->
+        </connections>
+    </application-configuration>
+    <!-- Don't touch anything below this line, they're used by tinydds compiler -->
+    <system-configuration componentSuffix='M' eventParamPrefix='a'>
+        <includes>
+            <header name="BaseUART" />
+            <header name="Apps_utils" />
+            <header name="WSN" />
+            <component name="Main" stdctrl="true" /> 
+            <component name="GenericComm" stdctrl="true" />
+            <component name="ApplicationM" interface="Application" stdctrl="true" />
+            <component name="OERP" interface="OERP" stdctrl="true" />
+            <component name="L4ALM" interface="L4" stdctrl="true" />
+            <component name="PerTopicM" interface="EventQueue" condition="threading=per-topic" />
+            <component name="PerEventM" interface="EventQueue" condition="threading=per-event" />
+            <component name="LatencyBudgetQosPolicyM" interface="LatencyBudgetQosPolicy" />
+            <component name="ReliabilityQosPolicyM" interface="ReliabilityQosPolicy" />
+            <component name="QosPolicyM" interface="QosPolicy" />
+            <component name="L3" interface="L3" stdctrl="true" />
+            <component name="TinyAODVM" interface="L3" stdctrl="true" />
+            <component name="AODV" stdctrl="true"  makefile="../MakeHSN"/>
+            <component name="LogicalTime" stdctrl="true" />
+        </includes>
+        <connections>
+        <!-- Global -->
+            <!-- Main -->
+            <connection from="Main.StdControl" to="*" />
+        <!-- Application Layer -->
+            <!-- ApplicationM -->
+            <connection from="ApplicationM.DomainParticipant" to="DomainParticipantM" />
+            <connection from="ApplicationM.DataWriter" to="DataWriterM" />
+            <connection from="ApplicationM.DataReader" to="DataReaderM" />
+            <connection from="ApplicationM.Publisher" to="PublisherM" />
+            <connection from="ApplicationM.Subscriber" to="SubscriberM" />
+            <connection from="ApplicationM.SubscriberListener" to="SubscriberListenerM" />
+            <connection from="ApplicationM.Topic" to="TopicM" />
+            <connection from="ApplicationM.ContentFilteredTopic" to="ContentFilteredTopic" />
+            <connection from="ApplicationM.QosPolicy" to="QosPolicyM" />
+        <!-- DDS Interfaces Layer -->
+            <!-- DataAggregatorM -->
+            <connection from="DDS_DataAggregation.SubscriberListener" to="SubscriberListenerM" />
+            <connection from="DDS_DataAggregation.Topic" to="TopicM" />
+            <connection from="DDS_DataAggregation.ContentFilteredTopic" to="ContentFilteredTopicM" />
+            <connection from="DDS_DataAggregation.QosPolicy" to="QosPolicyM" />
+            <!-- DataWriterM -->
+            <connection from="DataWriterM.Publisher" to="PublisherM" />
+            <connection from="DataWriterM.Time" to="LogicalTime" />
+            <!-- SubscriberListenerM -->
+            <connection from="SubscriberListenerM.DataReader" to="DataReaderM" />
+            <!-- DataReaderM -->
+            <connection from="SubscriberM.DataReader" to="DataReaderM" />
+            <connection from="SubscriberM.SubscriberListener" to="SubscriberListenerM" />
+            <!-- DataWriterM -->
+            <connection from="PublisherM.DataWriter" to="DataWriterM" />
+            <!-- QosPolicyM -->
+            <connection from="QosPolicyM.LatencyBudgetQosPolicy" to="LatencyBudgetQosPolicyM" />
+            <connection from="QosPolicyM.ReliabilityQosPolicy" to="ReliabilityQosPolicyM" />
+            <!-- SubscriberListernerM -->
+            <connection from="SubscriberListenerM.DomainParticipant" to="DomainParticipant" />
+        <!-- DDS Interfaces Layer to OERP layer -->
+            <!-- PublisherM -->
+            <connection from="PublisherM.OERP" to="OERP" />
+            <!-- SubscriberM -->
+            <connection from="SubscriberM.OERP" to="OERP" />
+            <!-- DomainParticipantM -->
+            <connection from="DomainParticipantM.Topic" to="TopicM" />
+        <!-- OERP layer to L4AL layer -->
+            <!-- OERP -->
+            <connection from="OERP.L4" to="L4ALM" />
+        <!-- L4AL layer -->
+            <connection from="L4ALM.EventQueue" to="PerEventM" />
+            <connection from="L4ALM.EventQueue" to="PerTopicM" />
+            <connection from="L4ALM.QosPolicy" to="QosPolicyM" />
+            <connection from="L4ALM.L3" to="L3" />
+        <!-- L3 layer -->  
+            <connection from="TinyAODVM.Send" to="AODV.Send[0]" />
+            <connection from="TinyAODVM.Receive" to="AODV.Receive[0]" />
+            <connection from="TinyAODVM.Intercept" to="AODV.Intercept[0]" />
+            <connection from="TinyAODVM.SendMHopMsg" to="AODV.SendMHopMsg[0]" />
+            <connection from="TinyAODVM.SingleHopMsg" to="AODV.SingleHopMsg" />
+            <connection from="TinyAODVM.MultiHopMsg" to="AODV.MultiHopMsg" />
+            <connection from="TinyAODVM.AODVMsg" to="AODV.AODVMsg" />
+			<connection from="TinyAODVM.Neighbors" to="NeighborsM.Neighbors" />
+        </connections>
+        <implementations>
+            <implementation component="TinyAODVM" interface="L3"/>
+        </implementations>
+        <skip-list>
+            <skip-interface name="Condition" />
+            <skip-interface name="GuardCondition" />
+            <skip-interface name="QueryCondition" />
+            <skip-interface name="DataReaderListener" />
+            <skip-interface name="DataWriterListener" />
+            <skip-interface name="Listener" />
+            <skip-interface name="PublisherListener" />
+            <skip-interface name="TopicListener" />
+            <skip-interface name="DomainParticipantFactory" />
+            <skip-interface name="DomainParticipantListener" />
+            <skip-interface name="MultiTopic" />
+            <skip-interface name="TopicDescription" />
+            <!-- skip-interface name="TypeSupport" / -->
+            <skip-interface name="WaitSet" />
+            <skip-interface name="ReadCondition" />
+            <skip-interface name="StatusCondition" />
+        </skip-list>
+        <event-definition>
+            <!-- FIXME: XML is order-less, but function parameters need specific order, we 
+            might need to add sequence number -->
+            <event interface="SubscriberListener" name="data_available" return="ReturnCode_t">
+                <event-parameter desc="Topic_t topic" />
+            </event>
+            <event interface="Timer" name="fired" return="result_t" />
+            <event interface="DataReader" named="data_available" return="ReturnCode_t">
+                <event-parameter desc="Topic_t topic"/>
+            </event>
+            <event interface="DataWriter" name="data_available" return="ReturnCode_t">
+                <event-parameter desc="DataWriter_t data_writer"/>
+                <event-parameter desc="Data data"/>
+            </event>
+            <event interface="Intercept" name="intercept" return="PacketResult_t">
+                <event-parameter desc="TOS_MsgPtr forward_msg"/>
+                <event-parameter desc ="void *payload"/>
+                <event-parameter desc="uint16_t len" />
+            </event>
+            <event interface="Send" name="sendDone" return="result_t">
+                <event-parameter desc="TOS_MsgPtr sentBuffer" />
+                <event-parameter desc="result_t success" />
+            </event>
+            <event interface="Receive" name="receive" return="TOS_MsgPtr">
+                <event-parameter desc="TOS_MsgPtr m" />
+                <event-parameter desc="void *payload" />
+                <event-parameter desc="uint16_t len" />
+            </event>
+            <event interface="OERP" name="data_available" return="ReturnCode_t">
+                <event-parameter desc="Topic_t topic" />
+                <event-parameter desc="Data data" />
+            </event>
+            <event interface="L4" name="receive" return="ReturnCode_t">
+                <event-parameter desc="int src" />
+                <event-parameter desc="Data data" />
+            </event>
+            <event interface="L3" name="receive" return="ReturnCode_t">
+                <event-parameter desc="int src" />
+                <event-parameter desc="Data data" />
+            </event>
+        </event-definition>
+        <command-definition>
+            <command interface="TypeSupport" name="register_type" return="ReturnCode_t" >
+                <command-parameter desc="DomainParticipant_t participant" />
+				<!-- FIXME: this should be string type, char * is too C -->
+                <command-parameter desc="char* type_name" />
+            </command>
+            <command interface="TypeSupport" name="get_type_name" return="char*" />
+            <command interface="SubscriberListener" name="create" return="SubscriberListener_t" >
+                <command-parameter desc="Topic_t topic" />
+            </command>
+			<command interface="SubscriberListener" name="read" return="ReturnCode_t" >
+                <command-parameter desc="Topic_t topic" />
+				<command-parameter desc="Data *data" />
+            </command>
+            <command interface="DataReader" name="create" return="DataReader_t" >
+                <command-parameter desc="Topic_t topic" />
+            </command>
+			<command interface="DataReader" name="on_data_available" return="void" >
+                <command-parameter desc="Topic_t topic" />
+				<command-parameter desc="Data data" />
+			</command>
+			<command interface="DataReader" name="read" return="ReturnCode_t" >
+                <command-parameter desc="Topic_t topic" />
+				<command-parameter desc="Data *data" />
+            </command>
+            <command interface="DataWriter" name="create" return="DataWriter_t" >
+                <command-parameter desc="Topic_t topic" />
+            </command>
+            <command interface="DataWriter" name="write" return="ReturnCode_t" >
+                <command-parameter desc="DataWriter_t data_writer" />
+                <command-parameter desc="Data data" />
+            </command>
+            <command interface="OERP" name="send" return="ReturnCode_t" >
+                <command-parameter desc="Topic_t topic" />
+                <command-parameter desc="Data data" />
+            </command>
+            <command interface="OERP" name="subscribe" return="ReturnCode_t" >
+                <command-parameter desc="Topic_t topic" />
+            </command>
+            <command interface="Topic" name="create" return="Topic_t" >
+                <command-parameter desc="char* topic_name" />
+            </command>
+            <command interface="L4" name="send" return="ReturnCode_t" >
+                <command-parameter desc="int dest" />
+                <command-parameter desc="Data data" />
+            </command>
+            <command interface="L3" name="send" return="ReturnCode_t" >
+                <command-parameter desc="int dest" />
+                <command-parameter desc="Data data" />
+            </command>
+			<command interface="L3" name="get_neighbors" return="uint8_t *" />
+        </command-definition>
+    </system-configuration>
+</configuration>
