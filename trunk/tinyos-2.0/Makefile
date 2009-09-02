@@ -1,0 +1,3 @@
+COMPONENT=DDS
+include $(MAKERULES)
+
