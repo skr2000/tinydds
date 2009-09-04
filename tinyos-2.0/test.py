@@ -4,14 +4,15 @@ import sys
 
 t = Tossim([])
 r = t.radio()
-f = open("topo.txt", "r")
+f = open("4x4-grid.txt", "r")
 
 lines = f.readlines()
 for line in lines:
 	s = line.split()
 	if (len(s) > 0):
-		print " ", s[0], " ", s[1], " ", s[2];
-		r.add(int(s[0]), int(s[1]), float(s[2]))
+		if(s[0] == "gain"):
+#			print " ", s[1], " ", s[2], " ", s[3];
+			r.add(int(s[1]), int(s[2]), float(s[3]))
 
 t.addChannel("APP", sys.stdout)
 t.addChannel("API", sys.stdout)
@@ -25,16 +26,14 @@ for line in lines:
 	str = line.strip()
 	if (str != ""):
 		val = int(str)
-		for i in range(1, 4):
+		for i in range(0, 15):
 			t.getNode(i).addNoiseTraceReading(val)
 
-for i in range(1, 4):
+for i in range(0, 15):
 	print "Creating noise model for ",i;
 	t.getNode(i).createNoiseModel()
+	t.getNode(i).bootAtTime(i*1001)
 
-t.getNode(1).bootAtTime(100001);
-t.getNode(2).bootAtTime(800008);
-t.getNode(3).bootAtTime(1800009);
 
-for i in range(0, 1000):
+for i in range(0, 10000000):
 	t.runNextEvent()
