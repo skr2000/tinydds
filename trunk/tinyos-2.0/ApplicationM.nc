@@ -108,8 +108,8 @@ implementation {
 			call Leds.led0Toggle();
 			call DataWriter.write(data_writer, data);
 			id++;
+			call Timer0.startOneShot(10000);
 		}
-		call Timer0.startOneShot(10000);
 	}
 
 	
@@ -137,7 +137,7 @@ implementation {
 		} else {
 			t = 0;
 		}
-		dbg("APP", "%s:data:%d:%d:%d\n", __FUNCTION__, data.orig, t, data.item[2]);
+		dbg("APP", "%s:receive-data:%d:%d:%d\n", __FUNCTION__, data.orig, t, data.item[2]);
 		return RETCODE_OK;
 	}
 

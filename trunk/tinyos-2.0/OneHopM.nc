@@ -1,4 +1,4 @@
-//$Id: OneHopM.nc,v 1.1 2008-07-28 06:35:06 pruet Exp $
+//$Id: OneHopM.nc,v 1.35 2009/09/04 05:37:01 pruet Exp pruet $
 // Ported to 2.0
 
 /*Copyright (c) 2008, 2009 University of Massachusetts, Boston 
@@ -44,9 +44,11 @@ module OneHopM {
 		 interface SplitControl as AMControl;
 	}
 } implementation {
+	nx_uint16_t _dests[MAX_NEIGHBOR];
 	message_t packet;
 	Neighbors _neighbors[MAX_NEIGHBOR];
 	nx_uint16_t DEFAULT;
+	uint8_t __lock;
 
 	typedef nx_struct data_msg {
 		nx_uint16_t src;
@@ -59,8 +61,54 @@ module OneHopM {
 		nx_uint8_t	data[MAX_DATA_LEN];
 	} Data_Msg;
 	typedef Data_Msg *Data_Msg_Ptr;
+	Data_Msg _buffers[MAX_BUFFER_SIZE];
+
+	void initBuffer()
+	{
+		int k;
+		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
+			_buffers[k].src = DEFAULT;
+		}
+	}
+
+	int getBufferSize()
+	{
+		int k;
+		int count = 0;
+		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
+			if(_buffers[k].src != DEFAULT) 	count++;
+		}
+		return count;
+	}
 	
-	void initNighbors()
+	int addBuffer(Data_Msg data, nx_uint16_t dest)
+	{
+		int k;
+		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
+			if(_buffers[k].src == DEFAULT) {
+				memcpy( &_buffers[k], &data, sizeof(Data_Msg));
+				_dests[k] = dest;
+				return RETCODE_OK;
+			}
+		}
+		return RETCODE_ERROR;
+	}
+
+	int getBuffer(Data_Msg *data, nx_uint16_t *dest)
+	{
+		int k;
+		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
+			if(_buffers[k].src != DEFAULT) {
+				memcpy(data, &_buffers[k], sizeof(Data_Msg));
+				_buffers[k].src = DEFAULT;
+				*dest = _dests[k];
+				return RETCODE_OK;
+			}
+		}
+		return RETCODE_ERROR;
+	}
+
+	void initNeighbors()
 	{
 		int k;
 		for(k = 0; k != MAX_NEIGHBOR; k++) {
@@ -110,12 +158,36 @@ module OneHopM {
 		return list;
 	}
 
+	task void send_message()
+	{
+		nx_uint16_t dest;
+		atomic {
+			if(__lock == 0) {
+				Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, NULL));
+				if(getBuffer(m, &dest) == RETCODE_OK) {
+					__lock = 1;
+					if(call AMSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
+						dbg("L3", "OH:%s:sent attemped\n", __FUNCTION__);
+					} else {
+						dbg("L3", "OH:%s:sent attemped failed\n", __FUNCTION__);
+					}
+				}
+			} else {
+				post send_message();
+			}
+		}
+	}
+
+
+
 
 	event void Boot.booted()
 	{
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
 		DEFAULT = 0xFFFF;
-
+		initNeighbors();
+		initBuffer();
+		__lock = 0;
 		call AMControl.start();
 	}
 
@@ -155,38 +227,44 @@ module OneHopM {
 	event void AMSend.sendDone (message_t* sentBuffer, error_t err) 
 	{
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		if(&packet == sentBuffer) {
-			dbg("L3", "OH:%s:status %d\n", __FUNCTION__, err);
+		atomic {
+			if(&packet == sentBuffer) {
+				dbg("L3", "OH:%s:status %d\n", __FUNCTION__, err);
+			}
+			if(getBufferSize() != 0) {
+				post send_message();
+			}
+			__lock = 0;
 		}
 	}
 
 	command ReturnCode_t L3.send (nx_uint16_t dest, Data data)
 	{
 		nx_uint16_t len;
-		Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, NULL));
+		Data_Msg msg;
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		m->src = TOS_NODE_ID;	
-		m->orig = data.orig;
-		m->sec = data.timestamp.sec;
-		m->nanosec = data.timestamp.nanosec;
-		m->size = data.size;
-		m->topic = data.topic;
-		m->subject = data.subject;
+		msg.src = TOS_NODE_ID;	
+		msg.orig = data.orig;
+		msg.sec = data.timestamp.sec;
+		msg.nanosec = data.timestamp.nanosec;
+		msg.size = data.size;
+		msg.topic = data.topic;
+		msg.subject = data.subject;
 		if(data.subject == SUBJECT_DATA) {
 			data.item[10]++;
 			dbg("L3", "OH:%s:subject %d:trans count %d \n", __FUNCTION__, data.subject, data.item[10]);
 		}
-		memcpy(m->data, data.item, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
+		memcpy(msg.data, data.item, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
 		len = sizeof(Data_Msg) + MAX_DATA_LEN;
 		dbg("L3", "OH:%s:send to %d len %d time %d\n", __FUNCTION__, dest, len, call LocalTime.get());
-		if(call AMSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
-			dbg("L3", "OH:%s:sent\n", __FUNCTION__);
+		if(addBuffer(msg, dest) == RETCODE_OK) {
+			dbg("L3", "OH:%s:buffer added\n", __FUNCTION__);
+			post send_message();
 		} else {
-			dbg("L3", "OH:%s:failed\n", __FUNCTION__);
+			dbg("L3", "OH:%s:buffer added failed\n", __FUNCTION__);
 		}
 		return RETCODE_OK;
 	}
-
 
 	command nx_uint16_t * L3.get_neighbors()
 	{

@@ -29,10 +29,10 @@ typedef nx_uint8_t * Data_t;
 #define SUBJECT_BASE_PHEROMONE 5
 #define SUBJECT_PHEROMONE 6
 //#define DEBUG_EDGE 
-#define BASESTATION_NODE_ID 1
+#define BASESTATION_NODE_ID 0
 
 typedef nx_struct {
-  nx_uint8_t item[MAX_BUFFER_SIZE];
+  nx_uint8_t item[MAX_DATA_LEN];
   nx_uint8_t src;
   nx_uint8_t orig;
   nx_uint8_t size;
