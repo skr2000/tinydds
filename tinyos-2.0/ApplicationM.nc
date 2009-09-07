@@ -56,6 +56,7 @@ implementation {
 	SubscriberListener_t listener = NIL;
 	int id = 0;
   	int PUBLISHER_MOD = 2;
+	int count = 5;
 	
 	event void Boot.booted ()
 	{
@@ -93,6 +94,10 @@ implementation {
 			listener = call SubscriberListener.create(ts_topic);
 			call Subscriber.set_listener(listener, NIL);
 			data_reader = call Subscriber.create_datareader(ts_topic, dr_qos, listener);
+			count--;
+			if(count != 0) {
+				call Timer0.startOneShot(10000);
+			}
 		}
 		if(data_writer != NIL) {
 			t = call LocalTime.get();

@@ -14,7 +14,8 @@ void debugi(const char *msg, uint32_t i)
 //FIXME: should move this to some separate header file
 typedef nx_uint8_t * Data_t;
 //FIXME
-#define NIL (255)
+#define NIL (0xFF)
+#define NILNIL (0xFFFF)
 #define MAX_MEMBER_SIZE 10
 #define MAX_NEIGHBOR 10
 #define MAX_TOPIC_LENGTH 64
@@ -28,8 +29,12 @@ typedef nx_uint8_t * Data_t;
 #define SUBJECT_BASE_PHEROMONE_FLOOD 4
 #define SUBJECT_BASE_PHEROMONE 5
 #define SUBJECT_PHEROMONE 6
+#define SUBJECT_DATA_TO_HASH 7
 //#define DEBUG_EDGE 
-#define BASESTATION_NODE_ID 0
+#define BASESTATION_NODE_ID 5
+#define TRUE (1)
+#define FALSE (0)
+#define MAX_HASH 10
 
 typedef nx_struct {
   nx_uint8_t item[MAX_DATA_LEN];

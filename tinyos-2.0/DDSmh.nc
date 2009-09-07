@@ -52,10 +52,8 @@ implementation {
 	EntityM.Boot -> MainC;
 	TopicM.Boot -> MainC;
 	DomainParticipantM.Boot -> MainC;
-	//OneHopM.Boot -> MainC;
 	MultiHopM.Boot -> MainC;
 	L4ALM.Boot -> MainC;
-	//SpanningTreeM.Boot -> MainC;
 	DHTM.Boot -> MainC;
 	SubscriberListenerM.Boot -> MainC;
 	SubscriberM.Boot -> MainC;
