@@ -1,4 +1,4 @@
-//$Id: SpanningTreeM.nc,v 1.1 2008-07-28 06:35:06 pruet Exp $
+//$Id: DHTM.nc,v 1.1 2008-07-28 06:35:06 pruet Exp $
 // Ported to 2.0
 
 /*Copyright (c) 2008,2009 University of Massachusetts, Boston 
@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 //This file is generated from IDL. please use it as the skelton file for your module
-module SpanningTreeM {
+module DHTM {
 	provides {
 		 interface OERP;
 	}
@@ -48,8 +48,9 @@ implementation {
 		nx_uint8_t parent;
 		nx_uint8_t topic;
 	} Topics;
+	//FIXME, better change to dynamic one
+	nx_uint16_t subscribers[MAX_HASH][MAX_MEMBER_SIZE];
 	Topics topics[MAX_BUFFER_SIZE];
-	nx_uint8_t subscribes[MAX_BUFFER_SIZE];
 
 	int lookup(uint8_t id)
 	{
@@ -72,78 +73,91 @@ implementation {
 		return -1;
 	}
 
-	event void Boot.booted()
+	void initialize()
 	{
-		int i;
-		dbg("OERP", "ST:%s:called\n", __FUNCTION__);
+		int j,i;
 		for(i = 0; i != MAX_BUFFER_SIZE; i++) {
-			topics[i].weight = NIL;
+			topics[i].weight = 0xFF;
 			topics[i].parent = 0;
 			topics[i].orig = 0;
 			topics[i].topic = NIL;
-			subscribes[i] = NIL;
 		}
+		for(i = 0; i != MAX_HASH; i++) {
+			for(j = 0; j != MAX_MEMBER_SIZE; j++) {
+				subscribers[i][j] = NILNIL;
+			}
+		}
+	}
+	event void Boot.booted()
+	{
+		dbg("OERP", "DH:%s:called\n", __FUNCTION__);
+		initialize();
+	}
+	nx_uint8_t hash(nx_uint8_t topic) 
+	{
+		return topic % MAX_HASH;
+	}
+	uint8_t hashSize(nx_uint8_t topic)
+	{
+		return (uint8_t)topic / MAX_HASH;
 	}
 
 	command ReturnCode_t OERP.send (Topic_t topic, Data data)
 	{
-		int i;
-		dbg("OERP", "ST:%s:called\n", __FUNCTION__);
+		dbg("OERP", "DH:%s:called\n", __FUNCTION__);
 		data.orig = TOS_NODE_ID;
-		for(i = 0; i != MAX_BUFFER_SIZE; i++) {
-			if(topics[i].topic == data.topic) {
-				dbg("OERP", "ST:%s:sendto %d\n", __FUNCTION__, topics[i].parent);
-				call L4.send(topics[i].parent, data);
-			}
-		}
-		return SUCCESS;
+		// rewrite subject
+		data.subject = SUBJECT_DATA_TO_HASH;
+		dbg("OERP", "DH:%s:sendto hash node %d\n", __FUNCTION__, hash(data.topic));
+		return call L4.send(data.topic, data);
 	}
 	
 	
 	event ReturnCode_t L4.receive (nx_uint16_t src, Data data)
 	{
-		dbg("OERP", "ST:%s:receive from=%d orig=%d subject=%d\n", __FUNCTION__, src, data.orig, data.subject);
+		dbg("OERP", "DH:%s:receive from=%d orig=%d subject=%d\n", __FUNCTION__, src, data.orig, data.subject);
 		if(data.subject == SUBJECT_DATA) {
-			int i;
-			for(i = 0; i != MAX_BUFFER_SIZE; i++) {
-				if(data.topic == subscribes[i]) {
-					dbg("OERP", "ST:%s:receive data \n", __FUNCTION__);
-					signal OERP.data_available(data.topic, data);	
-					return SUCCESS;
-				}
-			}
-			for(i = 0; i != MAX_BUFFER_SIZE; i++) {
-				if(topics[i].topic == data.topic) {
-					dbg("OERP", "ST:%s:receive data forward=%d\n", __FUNCTION__, topics[i].parent);
-					call L4.send(topics[i].parent, data);
-				}
-			}
-		} else if(data.subject == SUBJECT_BASE_PHEROMONE_FLOOD) {
-			int id;
-			dbg("OERP", "ST:%s:receive base pheromone orig=%d incoming=%d \n", __FUNCTION__, data.orig, data.size);
-			id = lookup(data.orig);
-			if(id == -1) {
-				id = findAvailable();
-				if(id == -1) {
-					dbg("OERP", "ST:%s:topic buffer fulled\n", __FUNCTION__);
-					return SUCCESS;	
-				}
-				dbg("OERP", "ST:%s:receive new forward\n", __FUNCTION__);
-				topics[id].weight = data.size++;
-				topics[id].parent = src;
-				topics[id].orig = data.orig;
-				topics[id].topic = data.topic;
-				call L4.send(TOS_BCAST_ADDR, data);
+			if(TOS_NODE_ID == BASESTATION_NODE_ID) {
+				signal OERP.data_available(data.topic, data);	
 			} else {
-				if(data.size < topics[id].weight) {
-					dbg("OERP", "ST:%s:receive forward\n", __FUNCTION__);
-					topics[id].weight = data.size++;
-					topics[id].parent = src;
-					topics[id].orig = data.orig;
-					topics[id].topic = data.topic;
-					call L4.send(TOS_BCAST_ADDR, data);
+				int i;
+				for(i = 0; i != MAX_BUFFER_SIZE; i++) {
+					if(topics[i].topic == data.topic) {
+						dbg("OERP", "DH:%s:receive data forward=%d\n", __FUNCTION__, topics[i].parent);
+						call L4.send(topics[i].parent, data);
+					}
 				}
-				dbg("OERP", "ST:%s:receive drop\n", __FUNCTION__);
+			}
+		} else if(data.subject == SUBJECT_DATA_TO_HASH) {
+			dbg("OERP", "DH:%s:receive published data request orig=%d incoming=%d \n", __FUNCTION__, data.orig, data.size);
+			if(data.topic == hash(TOS_NODE_ID)) {
+				int i;
+				dbg("OERP", "DH:%s:my hashed data from %d topic %d \n", __FUNCTION__, data.orig, data.topic);
+				data.subject = SUBJECT_DATA;
+				for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+					if(subscribers[hashSize(data.topic)][i] != NILNIL) {
+						dbg("OERP", "DH:%s:published to %d \n", __FUNCTION__, subscribers[hashSize(data.topic)][i]);
+						call L4.send(subscribers[hashSize(data.topic)][i], data);
+					}	
+				}
+			}
+		} else if(data.subject == SUBJECT_SUBSCRIBE) {
+			int i;
+			dbg("OERP", "DH:%s:receive subscribe request orig=%d incoming=%d \n", __FUNCTION__, data.orig, data.size);
+			if(data.topic == hash(TOS_NODE_ID)) {
+				for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+					if(subscribers[hashSize(data.topic)][i] == data.orig) {
+						dbg("OERP", "DH:%s:we know this subscriber, skip %d\n", __FUNCTION__, hashSize(data.topic));
+						return SUCCESS;	
+					}
+				}
+				for(i = 0; i != MAX_MEMBER_SIZE; i++) {
+					if(subscribers[hashSize(data.topic)][i] == NILNIL) {
+						dbg("OERP", "DH:%s:added to subscription slot for topic %d\n", __FUNCTION__, hashSize(data.topic));
+						subscribers[hashSize(data.topic)][i] = data.orig;
+						return SUCCESS;	
+					}
+				}
 			}
 		}
 		return SUCCESS;
@@ -152,16 +166,12 @@ implementation {
 	command ReturnCode_t OERP.subscribe (Topic_t topic)
 	{
 		Data data;
-		int i;
-		dbg("OERP", "ST:%s:called\n", __FUNCTION__);
-		for(i = 0; i != MAX_BUFFER_SIZE; i++) {
-			if(subscribes[i] == NIL) subscribes[i] = topic;
-		}
-		data.subject = SUBJECT_BASE_PHEROMONE_FLOOD;
+		dbg("OERP", "DH:%s:called\n", __FUNCTION__);
+		data.subject = SUBJECT_SUBSCRIBE;
 		data.topic = topic;
 		data.size = 0;
 		data.orig = TOS_NODE_ID;
-		call L4.send(TOS_BCAST_ADDR, data);
+		call L4.send(hash(topic), data);
 		return SUCCESS;
 	}
 }

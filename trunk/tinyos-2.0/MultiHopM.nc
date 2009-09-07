@@ -1,4 +1,4 @@
-//$Id: OneHopM.nc,v 1.41 2009/09/07 21:26:45 pruet Exp pruet $
+//$Id: MultiHopM.nc,v 1.38 2009/09/07 03:07:13 pruet Exp $
 // Ported to 2.0
 
 /*Copyright (c) 2008, 2009 University of Massachusetts, Boston 
@@ -31,23 +31,23 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 //This file is generated from IDL. please use it as the skelton file for your module
-module OneHopM {
+module MultiHopM {
 	provides {
 		 interface L3;
 	}
 	uses {
 		 interface Boot;
-		 interface AMSend;
+		 interface AMSend as MHSend;
 		 interface Receive;
-		 interface Packet;
+		 interface AMPacket as MHPacket;
          interface LocalTime<TMilli>;
-		 interface SplitControl as AMControl;
+		 interface Packet;
+		 interface SplitControl;
 	}
 } implementation {
 	nx_uint16_t _dests[MAX_NEIGHBOR];
 	message_t packet;
 	Neighbors _neighbors[MAX_NEIGHBOR];
-	nx_uint16_t DEFAULT;
 	uint8_t __lock;
 
 	typedef nx_struct data_msg {
@@ -67,7 +67,7 @@ module OneHopM {
 	{
 		int k;
 		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
-			_buffers[k].src = DEFAULT;
+			_buffers[k].src = NILNIL;
 		}
 	}
 
@@ -76,7 +76,7 @@ module OneHopM {
 		int k;
 		int count = 0;
 		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
-			if(_buffers[k].src != DEFAULT) 	count++;
+			if(_buffers[k].src != NILNIL) 	count++;
 		}
 		return count;
 	}
@@ -85,7 +85,7 @@ module OneHopM {
 	{
 		int k;
 		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
-			if(_buffers[k].src == DEFAULT) {
+			if(_buffers[k].src == NILNIL) {
 				memcpy( &_buffers[k], &data, sizeof(Data_Msg));
 				_dests[k] = dest;
 				return RETCODE_OK;
@@ -98,9 +98,9 @@ module OneHopM {
 	{
 		int k;
 		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
-			if(_buffers[k].src != DEFAULT) {
+			if(_buffers[k].src != NILNIL) {
 				memcpy(data, &_buffers[k], sizeof(Data_Msg));
-				_buffers[k].src = DEFAULT;
+				_buffers[k].src = NILNIL;
 				*dest = _dests[k];
 				return RETCODE_OK;
 			}
@@ -112,9 +112,9 @@ module OneHopM {
 	{
 		int k;
 		for(k = 0; k != MAX_NEIGHBOR; k++) {
-			_neighbors[k].id = DEFAULT;
-			_neighbors[k].dist = DEFAULT;
-			_neighbors[k].status = DEFAULT;
+			_neighbors[k].id = NILNIL;
+			_neighbors[k].dist = NILNIL;
+			_neighbors[k].status = NILNIL;
 		}
 	}
 
@@ -123,7 +123,7 @@ module OneHopM {
 		int k;
 		int j = 0;
 		for(k = 0; k != MAX_NEIGHBOR; k++) {
-			if(_neighbors[k].id != DEFAULT) j++;
+			if(_neighbors[k].id != NILNIL) j++;
 		}
 		return j;
 	}
@@ -132,7 +132,7 @@ module OneHopM {
 	{
 		int k;
 		for(k = 0; k != MAX_NEIGHBOR; k++) {
-			if(_neighbors[k].id == DEFAULT) {
+			if(_neighbors[k].id == NILNIL) {
 				_neighbors[k].id = id;
 				return RETCODE_OK;
 			} 
@@ -160,7 +160,7 @@ module OneHopM {
 		int j = 1;
 		nx_uint16_t *list = (nx_uint16_t *)malloc(sizeof(nx_uint16_t) * (MAX_NEIGHBOR + 1));
 		for(k = 0; k != MAX_NEIGHBOR; k++) {
-			if(_neighbors[k].id != DEFAULT) {
+			if(_neighbors[k].id != NILNIL) {
 				list[j] = _neighbors[k].id;
 				j++;
 			}
@@ -177,12 +177,12 @@ module OneHopM {
 				Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, NULL));
 				if(getBuffer(m, &dest) == RETCODE_OK) {
 					__lock = 1;
-					if(call AMSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
+					if(call MHSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
 						dbg("L3", "OH:%s:sent attemped\n", __FUNCTION__);
 					} else {
 						dbg("L3", "OH:%s:sent attemped failed\n", __FUNCTION__);
+						__lock = 0;
 					}
-					__lock = 0;
 				}
 			} else {
 				post send_message();
@@ -190,28 +190,21 @@ module OneHopM {
 		}
 	}
 
-
-
-
 	event void Boot.booted()
 	{
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		DEFAULT = 0xFFFF;
 		initNeighbors();
 		initBuffer();
 		__lock = 0;
-		call AMControl.start();
+		call SplitControl.start();
 	}
 
-	event void AMControl.startDone(error_t err) {
-		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		if(err != SUCCESS) {
-			call AMControl.start();
-		}
+	event void SplitControl.startDone(error_t e)
+	{
 	}
 
-	event void AMControl.stopDone(error_t err) {
-		dbg("L3", "OH:%s:called\n", __FUNCTION__);
+	event void SplitControl.stopDone(error_t e)
+	{
 	}
 
 
@@ -236,7 +229,7 @@ module OneHopM {
 		return bufPtr;
 	}
 
-	event void AMSend.sendDone (message_t* sentBuffer, error_t err) 
+	event void MHSend.sendDone (message_t* sentBuffer, error_t err) 
 	{
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
 		atomic {
@@ -255,9 +248,6 @@ module OneHopM {
 		nx_uint16_t len;
 		Data_Msg msg;
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		if(isNeighbor(dest) == FALSE) {
-			return RETCODE_ERROR;
-		}
 		msg.src = TOS_NODE_ID;	
 		msg.orig = data.orig;
 		msg.sec = data.timestamp.sec;
