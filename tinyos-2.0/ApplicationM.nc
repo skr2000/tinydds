@@ -55,7 +55,6 @@ implementation {
 	DataWriter_t data_writer = NIL;
 	SubscriberListener_t listener = NIL;
 	int id = 0;
-  	int PUBLISHER_MOD = 2;
 	int count = 5;
 	
 	event void Boot.booted ()
