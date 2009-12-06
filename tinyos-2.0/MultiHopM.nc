@@ -174,7 +174,7 @@ module MultiHopM {
 		nx_uint16_t dest;
 		atomic {
 			if(__lock == 0) {
-				Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, NULL));
+				Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, (int)NULL));
 				if(getBuffer(m, &dest) == RETCODE_OK) {
 					__lock = 1;
 					if(call MHSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
