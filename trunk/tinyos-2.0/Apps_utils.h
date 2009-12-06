@@ -1,15 +1,6 @@
-/*
- * void debug (const char* msg)
-{
-	dbg(DBG_USR2, ":%s\n", msg);
-}
-void debugi(const char *msg, uint32_t i) 
-{
-	int j = i;
-	dbg(DBG_USR2, ":%s:%lu\n", msg, j);
-}
-*/
 
+#ifndef APPS_UTILS_H
+#define APPS_UTILS_H
 
 //FIXME: should move this to some separate header file
 typedef nx_uint8_t * Data_t;
@@ -19,8 +10,8 @@ typedef nx_uint8_t * Data_t;
 #define MAX_MEMBER_SIZE 10
 #define MAX_NEIGHBOR 10
 #define MAX_TOPIC_LENGTH 64
-#define MAX_DATA_LEN 13
-#define MAX_BUFFER_SIZE 10
+#define MAX_DATA_LEN 1 
+#define MAX_BUFFER_SIZE 20
 #define NOT_IMPLEMENTED_YET (MAX_MEMBER_SIZE + 1)
 #define NOT_AVAILABLE (MAX_MEMBER_SIZE + 2)
 #define SUBJECT_SUBSCRIBE 1
@@ -31,7 +22,8 @@ typedef nx_uint8_t * Data_t;
 #define SUBJECT_PHEROMONE 6
 #define SUBJECT_DATA_TO_HASH 7
 //#define DEBUG_EDGE 
-#define BASESTATION_NODE_ID 5
+#define BASESTATION_NODE_ID 10
+#define PUBLISHER_MOD 12
 #define TRUE (1)
 #define FALSE (0)
 #define MAX_HASH 10
@@ -53,6 +45,7 @@ typedef nx_struct {
 typedef DataSeq * DataSeq_p;*/
 
 enum {
-	AM_MSG_DDS = 5,
+	AM_MSG_DDS = 6,
 };
 
+#endif

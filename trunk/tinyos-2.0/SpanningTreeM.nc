@@ -38,6 +38,8 @@ module SpanningTreeM {
 	uses {
 		 interface Boot; 
 		 interface L4;
+		 interface Leds;
+		 interface Printf;
 	}
 }
 implementation {
@@ -89,10 +91,12 @@ implementation {
 	{
 		int i;
 		dbg("OERP", "ST:%s:called\n", __FUNCTION__);
+		call Printf.printf("st:send");
 		data.orig = TOS_NODE_ID;
 		for(i = 0; i != MAX_BUFFER_SIZE; i++) {
 			if(topics[i].topic == data.topic) {
 				dbg("OERP", "ST:%s:sendto %d\n", __FUNCTION__, topics[i].parent);
+				call Printf.printf("st:send down");
 				call L4.send(topics[i].parent, data);
 			}
 		}
@@ -102,7 +106,10 @@ implementation {
 	
 	event ReturnCode_t L4.receive (nx_uint16_t src, Data data)
 	{
+		char buf[20];
 		dbg("OERP", "ST:%s:receive from=%d orig=%d subject=%d\n", __FUNCTION__, src, data.orig, data.subject);
+		sprintf(buf,"st:rcv:%d:%d", src, data.subject);
+		call Printf.printf(buf);
 		if(data.subject == SUBJECT_DATA) {
 			int i;
 			for(i = 0; i != MAX_BUFFER_SIZE; i++) {
@@ -129,14 +136,16 @@ implementation {
 					return SUCCESS;	
 				}
 				dbg("OERP", "ST:%s:receive new forward\n", __FUNCTION__);
+				call Printf.printf("st:new fwd");
 				topics[id].weight = data.size++;
 				topics[id].parent = src;
 				topics[id].orig = data.orig;
 				topics[id].topic = data.topic;
 				call L4.send(TOS_BCAST_ADDR, data);
 			} else {
-				if(data.size < topics[id].weight) {
+				if(data.size <= topics[id].weight) {
 					dbg("OERP", "ST:%s:receive forward\n", __FUNCTION__);
+					call Printf.printf("st:new fwd");
 					topics[id].weight = data.size++;
 					topics[id].parent = src;
 					topics[id].orig = data.orig;
@@ -144,6 +153,7 @@ implementation {
 					call L4.send(TOS_BCAST_ADDR, data);
 				}
 				dbg("OERP", "ST:%s:receive drop\n", __FUNCTION__);
+				call Printf.printf("st:rcv:drop");
 			}
 		}
 		return SUCCESS;

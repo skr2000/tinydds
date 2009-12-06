@@ -31,6 +31,9 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 //This file is generated from IDL. please use it as the skelton file for your module
+#include <stdio.h>
+#include <stdlib.h>
+
 module OneHopM {
 	provides {
 		 interface L3;
@@ -42,6 +45,9 @@ module OneHopM {
 		 interface Packet;
          interface LocalTime<TMilli>;
 		 interface SplitControl as AMControl;
+		 interface Leds;
+		 interface Printf;
+		 interface Topology;
 	}
 } implementation {
 	nx_uint16_t _dests[MAX_NEIGHBOR];
@@ -80,12 +86,13 @@ module OneHopM {
 		}
 		return count;
 	}
-	
+
 	int addBuffer(Data_Msg data, nx_uint16_t dest)
 	{
 		int k;
 		for(k = 0; k != MAX_BUFFER_SIZE; k++) {
 			if(_buffers[k].src == DEFAULT) {
+				data.src = TOS_NODE_ID;
 				memcpy( &_buffers[k], &data, sizeof(Data_Msg));
 				_dests[k] = dest;
 				return RETCODE_OK;
@@ -169,29 +176,39 @@ module OneHopM {
 		return list;
 	}
 
-	task void send_message()
+	task void send_message() 
 	{
 		nx_uint16_t dest;
+		Data_Msg_Ptr m;
+		bool status = FALSE;
+		call Leds.led0Toggle();
 		atomic {
 			if(__lock == 0) {
-				Data_Msg_Ptr m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, NULL));
-				if(getBuffer(m, &dest) == RETCODE_OK) {
-					__lock = 1;
-					if(call AMSend.send(dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
-						dbg("L3", "OH:%s:sent attemped\n", __FUNCTION__);
-					} else {
-						dbg("L3", "OH:%s:sent attemped failed\n", __FUNCTION__);
+				m = (Data_Msg_Ptr)(call Packet.getPayload(&packet, sizeof(Data_Msg)));
+				if(m == NULL) {
+					call Printf.printf("m is null");
+				} else {
+					if(getBuffer(m, &dest) == RETCODE_OK) {
+						__lock = 1;
+
+						if(call AMSend.send((uint32_t)dest, &packet, sizeof(Data_Msg)) == SUCCESS) {
+							status = TRUE;
+						} else {
+							status = FALSE;
+						}
+						__lock = 0;
 					}
-					__lock = 0;
 				}
 			} else {
 				post send_message();
 			}
 		}
+		if(status) {
+			call Printf.printf("oh:send ok");
+		} else {
+			call Printf.printf("oh:send fail");
+		}
 	}
-
-
-
 
 	event void Boot.booted()
 	{
@@ -217,19 +234,26 @@ module OneHopM {
 
 	event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len)
 	{
+		char buf[20];
+		call Leds.led1Toggle();
 		if(len == sizeof(Data_Msg)) {
 			Data data;
 			Data_Msg_Ptr data_msg_ptr = (Data_Msg_Ptr) payload;
+			if((call Topology.isNeighbor(data_msg_ptr->src)) == FALSE) {
+				sprintf(buf, "oh:!nei:%d:%d", TOS_NODE_ID, data_msg_ptr->src);
+				call Printf.printf(buf);
+				return bufPtr;
+			}
 			addNeighbor(data_msg_ptr->src);
+			call Printf.printf("oh:rcv");
 			dbg("L3", "OH:%s:called Receive:data:%d:%d:%d:%d:%s\n", __FUNCTION__, data_msg_ptr->src, data_msg_ptr->orig, data_msg_ptr->subject, data_msg_ptr->topic, data_msg_ptr->data);
 			data.timestamp.sec = data_msg_ptr->sec;
 			data.timestamp.nanosec = data_msg_ptr->nanosec;
 			data.topic = data_msg_ptr->topic;
 			data.size = data_msg_ptr->size;
 			data.orig = data_msg_ptr->orig;
-			data.src = TOS_NODE_ID;
+			data.src = data_msg_ptr->src;
 			data.subject = data_msg_ptr->subject;
-			//data.item = (Data_t)malloc(sizeof(nx_uint8_t) * data.size);
 			memcpy(data.item, data_msg_ptr->data, (data.size > MAX_DATA_LEN)?MAX_DATA_LEN:data.size);
 			signal L3.receive(data_msg_ptr->src, data);
 		}
@@ -255,9 +279,10 @@ module OneHopM {
 		nx_uint16_t len;
 		Data_Msg msg;
 		dbg("L3", "OH:%s:called\n", __FUNCTION__);
-		if(isNeighbor(dest) == FALSE) {
-			return RETCODE_ERROR;
-		}
+		//FIXME: should not be hardcoded the TOS_BCAST_ADDR here
+		//if(isNeighbor(dest) == FALSE && dest != 0xFFFF) {
+		//return RETCODE_ERROR;
+		//}
 		msg.src = TOS_NODE_ID;	
 		msg.orig = data.orig;
 		msg.sec = data.timestamp.sec;

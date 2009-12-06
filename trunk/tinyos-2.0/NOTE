@@ -1,0 +1,3 @@
+mig java -java-classname=SerialMsg Serial.h serial_msg -o SerialMsg.java
+java net.tinyos.tools.Listen -comm serial@/dev/ttyUSB1:intelmote2
+

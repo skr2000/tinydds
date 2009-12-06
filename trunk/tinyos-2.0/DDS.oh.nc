@@ -38,6 +38,7 @@ includes DDS_const;
 //includes BaseUART;
 includes Apps_utils;
 includes WSN;
+includes Serial;
 //includes WSN_Messages;
 //Configuration block
 configuration DDS {
@@ -45,21 +46,43 @@ configuration DDS {
 
 //Implementation block
 implementation {
-	components LedsC, new TimerMilliC() as AppTimer, LocalTimeMilliC, MainC,  ApplicationM, L4ALM,  OneHopM, TopicM, DomainParticipantM, DataReaderM, SubscriberListenerM, PublisherM, SubscriberM, TypeSupportM, EntityM, DataWriterM,  SpanningTreeM, new AMSenderC(AM_MSG_DDS), new AMReceiverC(AM_MSG_DDS), ActiveMessageC;
+	//required
+	components MainC, ApplicationM, L4ALM, TopicM, DomainParticipantM, DataReaderM, SubscriberListenerM, PublisherM, SubscriberM, TypeSupportM, EntityM, DataWriterM;
+	//options
+	components LedsC;
+	components new TimerMilliC() as AppTimer;
+	components LocalTimeMilliC;
+	components OneHopM;
+	components SpanningTreeM;
+	components new AMSenderC(AM_MSG_DDS);
+	components new AMReceiverC(AM_MSG_DDS);
+	components ActiveMessageC;
+	components PrintfM;
+	components TopologyM;
+	components SerialActiveMessageC as AM;
 	//components LedsC, new TimerMilliC() as AppTimer, LocalTimeMilliC, MainC,  ApplicationM, L4ALM,  TopicM, DomainParticipantM, DataReaderM, SubscriberListenerM, PublisherM, SubscriberM, TypeSupportM, EntityM, DataWriterM,  ActiveMessageC, DymoNetworkC, MultiHopM,  DHTM;
 
 	TypeSupportM.Boot -> MainC;
 	EntityM.Boot -> MainC;
 	TopicM.Boot -> MainC;
 	DomainParticipantM.Boot -> MainC;
-	MultiHopM.Boot -> MainC;
+	PrintfM.Boot -> MainC.Boot;
+	//MultiHopM.Boot -> MainC;
+	OneHopM.Boot -> MainC;
+	SpanningTreeM.Boot -> MainC;
 	L4ALM.Boot -> MainC;
-	DHTM.Boot -> MainC;
+	//DHTM.Boot -> MainC;
 	SubscriberListenerM.Boot -> MainC;
 	SubscriberM.Boot -> MainC;
 	PublisherM.Boot -> MainC;
 	DataReaderM.Boot -> MainC;
 	DataWriterM.Boot -> MainC;
+	ApplicationM.Boot -> MainC.Boot;
+
+	PrintfM.Control -> AM;
+	PrintfM.Receive -> AM.Receive[AM_SERIAL_MSG];
+	PrintfM.AMSend -> AM.AMSend[AM_SERIAL_MSG];
+	PrintfM.Packet -> AM;
 
 	DomainParticipantM.Topic -> TopicM;
 
@@ -68,6 +91,9 @@ implementation {
 	OneHopM.Receive -> AMReceiverC;
 	OneHopM.AMControl -> ActiveMessageC;
 	OneHopM.Packet -> AMSenderC;
+	OneHopM.Leds -> LedsC;
+	OneHopM.Topology -> TopologyM;
+	OneHopM.Printf -> PrintfM;
 
 	//MultiHopM.LocalTime -> LocalTimeMilliC;
 	//MultiHopM.SplitControl -> DymoNetworkC;
@@ -80,6 +106,8 @@ implementation {
 	//L4ALM.L3 -> MultiHopM;
 
 	SpanningTreeM.L4 -> L4ALM;
+	SpanningTreeM.Leds -> LedsC;
+	SpanningTreeM.Printf -> PrintfM;
 	//DHTM.L4 -> L4ALM;
 
 	SubscriberListenerM.DataReader -> DataReaderM;
@@ -92,6 +120,7 @@ implementation {
 	PublisherM.DataWriter -> DataWriterM;
 	PublisherM.OERP -> SpanningTreeM;
 	//PublisherM.OERP -> DHTM;
+	//
 
 	ApplicationM.Leds -> LedsC;
 	ApplicationM.Timer0 -> AppTimer;
@@ -104,4 +133,5 @@ implementation {
 	ApplicationM.SubscriberListener -> SubscriberListenerM;
 	ApplicationM.Topic -> TopicM;
 	ApplicationM.Boot -> MainC;
+	ApplicationM.Printf -> PrintfM;
 }

@@ -29,6 +29,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 module ApplicationM {
 	provides {
 		 interface Application;
@@ -45,8 +48,10 @@ module ApplicationM {
 		 interface Subscriber;
 		 interface SubscriberListener;
 		 interface Topic;
+		 interface Printf;
 	}
 }
+
 implementation {
 	Subscriber_t subscriber = NIL;
 	Publisher_t publisher = NIL;
@@ -55,9 +60,8 @@ implementation {
 	DataWriter_t data_writer = NIL;
 	SubscriberListener_t listener = NIL;
 	int id = 0;
-  	int PUBLISHER_MOD = 2;
 	int count = 5;
-	
+
 	event void Boot.booted ()
 	{
 		SubscriberQos s_qos;
@@ -73,16 +77,11 @@ implementation {
 		ts_topic = call DomainParticipant.create_topic("TempSensor", "", t_qos, NIL);
 		if(TOS_NODE_ID == BASESTATION_NODE_ID) {
 			dbg("APP","%s:start timer\n", __FUNCTION__);
-			call Timer0.startOneShot(500);
-			call Leds.led2On();
+			call Timer0.startOneShot(1000);
 		} else if(TOS_NODE_ID % PUBLISHER_MOD == 0) {
 			data_writer = call Publisher.create_datawriter (ts_topic, dw_qos, NIL);
-		}
-		if(TOS_NODE_ID != BASESTATION_NODE_ID  && TOS_NODE_ID % PUBLISHER_MOD == 0) {
-			dbg("APP","%s:start timer\n", __FUNCTION__);
 			call Timer0.startOneShot(1000);
 		}
-		//call Leds.led2On();
 	}
 
 
@@ -91,17 +90,17 @@ implementation {
 		Data data;
 		nx_uint32_t t;
 		dbg("APP","%s:called\n", __FUNCTION__);
+		call Printf.printf("ap:timer");
 		if(TOS_NODE_ID == BASESTATION_NODE_ID) {
 			DataReaderQos dr_qos;
 			listener = call SubscriberListener.create(ts_topic);
 			call Subscriber.set_listener(listener, NIL);
 			data_reader = call Subscriber.create_datareader(ts_topic, dr_qos, listener);
 			count--;
-			if(count != 0) {
-				call Timer0.startOneShot(1000);
-			}
+			call Timer0.startOneShot(10000);
 		}
 		if(data_writer != NIL) {
+			call Printf.printf("ap:publish");
 			t = call LocalTime.get();
 			//FIXME no pointer for network type?
 			//data.item = (nx_uint8_t *) malloc(sizeof(nx_uint8_t) * 3);
@@ -116,36 +115,37 @@ implementation {
 			id++;
 			call Timer0.startOneShot(1000);
 		}
-		call Leds.led0Toggle();
 	}
 
-	
+
 	event ReturnCode_t DataWriter.data_available (DataWriter_t a_data_writer, Data data)  
 	{
 		dbg("APP","%s:called\n", __FUNCTION__);
 		return RETCODE_OK;
 	}
-	
+
 	event ReturnCode_t SubscriberListener.data_available (Topic_t topic)
 	{
 		Data data;
 		nx_uint32_t t;
+		char buf[20];
 		dbg("APP","%s:called\n", __FUNCTION__);
 		t = call LocalTime.get();
-		call Leds.led1Toggle();
+		//call Leds.led1Toggle();
 		if( call DataReader.read(topic, &data) == FAIL) {
 			dbg("APP","%s:read_fail\n", __FUNCTION__);
 			return RETCODE_ERROR;
 		}
-	
+
 		//FIXME: need real clock sync
 		if(t > (data.timestamp.sec * 1024 + data.timestamp.nanosec)) {
 			t = t - (data.timestamp.sec * 1024 + data.timestamp.nanosec);
 		} else {
 			t = 0;
 		}
+		sprintf(buf, "ap:consume:%d", data.orig);
+		call Printf.printf(buf);
 		dbg("APP", "%s:receive-data:%d:%d:%d\n", __FUNCTION__, data.orig, t, data.item[2]);
 		return RETCODE_OK;
 	}
-
 }
